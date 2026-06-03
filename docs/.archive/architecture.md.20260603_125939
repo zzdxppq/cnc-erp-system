@@ -1,0 +1,1974 @@
+# CNC加工厂ERP系统 Fullstack Architecture Document
+
+---
+
+## 文档信息
+
+| 项目名称 | CNC加工厂ERP系统 |
+|---------|-----------------|
+| 文档版本 | V1.0 |
+| 创建日期 | 2026-06-02 |
+| 状态 | 初稿 |
+| 创建人 | 鲁班（架构师） |
+
+---
+
+## 1. Introduction
+
+### 1.1 Starter Template or Existing Project
+
+N/A - Greenfield project
+
+### 1.2 Change Log
+
+| Date | Version | Description | Author |
+|------|---------|-------------|--------|
+| 2026-06-02 | V1.0 | 初稿生成 | 鲁班 |
+| 2026-06-03 | V1.1 | 存储方案改为MinIO对象存储 | 鲁班 |
+
+---
+
+## 2. High Level Architecture
+
+### 2.1 Technical Summary
+
+CNC加工厂ERP系统采用前后端分离的分布式架构，前端使用Vue3+Element Plus构建响应式Web应用配合Android Native APP，后端采用Java Spring Boot微服务架构，通过Spring Cloud Gateway统一API网关。系统设计为私有化部署，支持单台8核32G服务器运行，MySQL单主库加Redis缓存提供数据存储与高性能访问能力。文件存储采用MinIO对象存储方案，支持S3协议兼容。系统以"图纸管理"和"扫码执行"为核心，支撑从客户需求到成品交付的全链路数字化。
+
+### 2.2 Platform and Infrastructure Choice
+
+**Recommendation: 私有化部署（Linux Server）**
+
+**Selected Platform:** 私有化部署 - 单台服务器All-in-One部署
+
+**Key Services:**
+- 应用服务器：Tomcat 9.x（Spring Boot嵌入式）
+- 数据库：MySQL 8.0（单主库）
+- 缓存：Redis 7.x（热点数据缓存、Session共享）
+- 对象存储：MinIO（兼容S3协议，图纸文件存储）
+- 任务调度：XXL-JOB 2.3.x（定时任务统一管理）
+
+**Deployment Host and Regions:**
+- 单台服务器：8核32G起步，按需扩容
+- 部署区域：中国大陆（私有化部署）
+
+**Rationale:** 本项目为CNC加工厂私有化部署场景，MinIO提供企业级对象存储能力，兼容S3协议便于未来迁移到云存储（阿里云OSS、AWS S3等）。相比本地/NAS，MinIO提供更好的数据可靠性（纠删码模式）和扩展性。
+
+### 2.3 Repository Structure
+
+**Structure:** Monorepo（多模块单仓库）
+
+**Monorepo Tool:** Maven Multi-Module Project
+
+**Package Organization:**
+```
+cnc-erp-system/                    # 父项目
+├── cnc-erp-system/                 # 主应用模块（Monolith）
+├── cnc-erp-system-service-sys/     # 系统服务模块（微服务）
+├── cnc-erp-system-service-report/  # 报表服务模块（微服务）
+├── cnc-erp-system-gateway/         # API网关模块
+├── cnc-erp-web/                    # 前端Web应用
+└── cnc-erp-android/               # Android APP应用
+```
+
+**Rationale:** 使用Maven多模块项目结构，便于统一版本管理和依赖管控，同时支持未来按需拆分为独立Git仓库。
+
+### 2.4 High Level Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Client["客户端层"]
+        Web["Web端<br/>Vue3 + Element Plus"]
+        Android["Android APP<br/>Kotlin + Jetpack Compose"]
+    end
+
+    subgraph Gateway["API网关层"]
+        Gateway["Spring Cloud Gateway<br/>:8080"]
+    end
+
+    subgraph Backend["后端服务层"]
+        Main["主应用<br/>Spring Boot 2.7.x<br/>:8081"]
+        SysService["系统服务<br/>Spring Boot 2.7.x<br/>:8082"]
+        ReportService["报表服务<br/>Spring Boot 2.7.x<br/>:8083"]
+    end
+
+    subgraph Infra["基础设施层"]
+        MySQL["MySQL 8.0<br/>:3306"]
+        Redis["Redis 7.x<br/>:6379"]
+        MinIO["MinIO对象存储<br/>:9000"]
+        XXL["XXL-JOB<br/>:8080"]
+    end
+
+    Web --> Gateway
+    Android --> Gateway
+    Gateway --> Main
+    Gateway --> SysService
+    Gateway --> ReportService
+    Main --> MySQL
+    Main --> Redis
+    Main --> MinIO
+    SysService --> MySQL
+    SysService --> Redis
+    ReportService --> MySQL
+    ReportService --> Redis
+    XXL -.-> Main
+```
+
+### 2.5 Architectural Patterns
+
+- **Monolith + Microservices:** 核心业务使用单一主应用，微服务拆分为系统服务和报表服务 - _Rationale:_ 平衡开发效率和系统复杂度，符合当前业务规模
+- **API Gateway Pattern:** Spring Cloud Gateway统一路由、认证鉴权、日志记录 - _Rationale:_ 客户端单一入口，便于安全管理和服务治理
+- **Repository Pattern:** 抽象数据访问逻辑，支持测试和数据库迁移 - _Rationale:_ 解耦业务逻辑与数据访问，提高可测试性
+- **JWT Authentication:** 无状态认证，JWT + 验证码 - _Rationale:_ 支持分布式部署，适合微服务架构
+- **Event-driven for Cross-service:** 跨服务场景通过最终一致性解决 - _Rationale:_ 避免分布式事务复杂性
+- **Object Storage Pattern:** 使用MinIO作为对象存储服务，兼容S3协议 - _Rationale:_ 支持大文件存储（图纸CAD），提供高可靠性和弹性扩展能力
+
+---
+
+## 3. Tech Stack
+
+### 3.1 Technology Stack Table
+
+| Category | Technology | Version | Purpose | Rationale |
+|----------|------------|---------|---------|------------|
+| Frontend Language | JavaScript/TypeScript | ES2022 | Web前端开发 | 类型安全，IDE支持好 |
+| Frontend Framework | Vue.js | 3.4.x | Web UI框架 | 渐进式，生态丰富，性能优异 |
+| UI Component Library | Element Plus | 2.5.x | Vue3组件库 | 中文社区活跃，组件丰富 |
+| State Management | Pinia | 2.1.x | Vue3状态管理 | 轻量，TypeScript友好 |
+| Backend Language | Java | 17 LTS | 后端开发 | 稳定可靠，生态完善 |
+| Backend Framework | Spring Boot | 2.7.18 | 后端框架 | 企业级，稳定版本 |
+| API Style | REST | 1.0 | API通信格式 | 简单直观，易于调试 |
+| Database | MySQL | 8.0 | 主数据存储 | 成熟稳定，事务支持好 |
+| Cache | Redis | 7.2.x | 缓存/Session | 高性能，持久化支持 |
+| Object Storage | MinIO | RELEASE.2024.x | 图纸文件存储 | 兼容S3协议，私有化部署 |
+| Authentication | JWT | 0.11.x | 用户认证 | 无状态，适合分布式 |
+| Frontend Testing | Vitest | 1.x | 单元测试 | 快速，Vite集成 |
+| Backend Testing | JUnit 5 + Mockito | 5.10.x | 单元测试 | 主流方案 |
+| E2E Testing | Playwright | 1.40.x | 端到端测试 | 跨浏览器支持好 |
+| Build Tool | Maven | 3.9.x | 后端构建 | 依赖管理成熟 |
+| Bundler | Vite | 5.x | 前端构建 | 快速HMR |
+| IaC Tool | Ansible | 2.15.x | 基础设施配置 | 轻量，学习曲线平缓 |
+| CI/CD | GitLab CI | - | 持续集成 | 自托管，代码管理一体化 |
+| Monitoring | Prometheus + Grafana | - | 监控告警 | 生态完善，可视化强 |
+| Logging | ELK Stack | - | 日志收集 | 集中日志，搜索强大 |
+| CSS Framework | Tailwind CSS | 3.4.x | 工具类CSS | 原子化，按需生成 |
+| API Gateway | Spring Cloud Gateway | 2021.0.x | API网关 | 与Spring Boot完美集成 |
+| Task Scheduler | XXL-JOB | 2.3.x | 定时任务 | 分布式，简单易用 |
+| Mobile Framework | Android Native | - | 移动APP | 原生开发，性能最优 |
+| Mobile Language | Kotlin | 1.9.x | Android开发 | 现代简洁，空安全 |
+| Mobile UI | Jetpack Compose | 1.5.x | Android UI | 声明式，现代化 |
+
+---
+
+## 4. Data Models
+
+### 4.1 Customer (客户)
+
+**Purpose:** 客户档案管理，业务入口
+
+**Key Attributes:**
+- customerId: UUID - 客户唯一标识
+- customerCode: VARCHAR(20) - 客户编码（CUST-YYYYMMDD-XXXX）
+- customerName: VARCHAR(100) - 客户名称
+- customerType: ENUM - 客户类型（potential/active/inactive）
+- industry: VARCHAR(50) - 行业分类
+- creditLimit: DECIMAL(15,2) - 信用额度
+- ownerId: UUID - 负责人（销售人员）
+
+**TypeScript Interface:**
+```typescript
+interface Customer {
+  id: string;
+  code: string;
+  name: string;
+  type: 'potential' | 'active' | 'inactive';
+  industry?: string;
+  creditLimit: number;
+  ownerId: string;
+  contacts: Contact[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**Relationships:**
+- Customer → Contact (1:N)
+- Customer → Quotation (1:N)
+- Customer → Order (1:N)
+
+---
+
+### 4.2 Quotation (报价单)
+
+**Purpose:** 报价管理，记录客户需求和价格
+
+**Key Attributes:**
+- quotationId: UUID - 报价单唯一标识
+- quotationCode: VARCHAR(20) - 报价单编码（QUOT-YYYYMMDD-XXXX）
+- customerId: UUID - 客户ID
+- deliveryDate: DATE - 交期
+- validUntil: DATE - 有效期
+- status: ENUM - 状态（draft/submitted/approved/rejected/converted）
+- totalAmount: DECIMAL(15,2) - 总价
+- profitMargin: DECIMAL(5,2) - 利润率
+
+**TypeScript Interface:**
+```typescript
+interface Quotation {
+  id: string;
+  code: string;
+  customerId: string;
+  deliveryDate: string;
+  validUntil: string;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected' | 'converted';
+  totalAmount: number;
+  profitMargin: number;
+  items: QuotationItem[];
+  drawings: Drawing[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**Relationships:**
+- Quotation → Customer (N:1)
+- Quotation → QuotationItem (1:N)
+- Quotation → Drawing (1:N)
+- Quotation → Order (1:1)
+
+---
+
+### 4.3 WorkOrder (工单)
+
+**Purpose:** 生产工单，追踪生产进度
+
+**Key Attributes:**
+- workOrderId: UUID - 工单唯一标识
+- workOrderCode: VARCHAR(20) - 工单编码（WO-YYYYMMDD-XXXX）
+- orderId: UUID - 销售订单ID
+- status: ENUM - 状态（planned/released/in_progress/paused/completed/cancelled）
+- plannedStartDate: DATETIME - 计划开始时间
+- plannedEndDate: DATETIME - 计划结束时间
+- actualStartDate: DATETIME - 实际开始时间
+- actualEndDate: DATETIME - 实际结束时间
+
+**TypeScript Interface:**
+```typescript
+interface WorkOrder {
+  id: string;
+  code: string;
+  orderId: string;
+  status: 'planned' | 'released' | 'in_progress' | 'paused' | 'completed' | 'cancelled';
+  plannedStartDate: string;
+  plannedEndDate: string;
+  actualStartDate?: string;
+  actualEndDate?: string;
+  operations: WorkOrderOperation[];
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+**Relationships:**
+- WorkOrder → Order (N:1)
+- WorkOrder → WorkOrderOperation (1:N)
+- WorkOrder → ProductionReport (1:N)
+
+---
+
+### 4.4 Material (物料)
+
+**Purpose:** 物料管理，支持生产配料和库存追踪
+
+**Key Attributes:**
+- materialId: UUID - 物料唯一标识
+- materialCode: VARCHAR(30) - 物料编码
+- materialName: VARCHAR(100) - 物料名称
+- category: ENUM - 类别（raw_material/wip/finished_goods）
+- unit: VARCHAR(10) - 单位
+- unitPrice: DECIMAL(15,4) - 单价
+- safetyStock: INTEGER - 安全库存
+
+**TypeScript Interface:**
+```typescript
+interface Material {
+  id: string;
+  code: string;
+  name: string;
+  category: 'raw_material' | 'wip' | 'finished_goods';
+  unit: string;
+  unitPrice: number;
+  safetyStock: number;
+}
+```
+
+**Relationships:**
+- Material → Inventory (1:N)
+- Material → BOMItem (1:N)
+
+---
+
+## 5. API Specification
+
+### 5.1 REST API Specification
+
+```yaml
+openapi: 3.0.0
+info:
+  title: CNC加工厂ERP系统 API
+  version: 1.0.0
+  description: CNC加工厂ERP系统后端API规范
+servers:
+  - url: http://localhost:8080/api
+    description: 开发环境服务器
+security:
+  - bearerAuth: []
+paths:
+  /auth/login:
+    post:
+      tags:
+        - 认证
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+        '401':
+          description: 认证失败
+
+  /customers:
+    get:
+      tags:
+        - 客户管理
+      summary: 获取客户列表
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: keyword
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+    post:
+      tags:
+        - 客户管理
+      summary: 创建客户
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Customer'
+      responses:
+        '201':
+          description: 创建成功
+
+  /quotations:
+    get:
+      tags:
+        - 报价管理
+      summary: 获取报价单列表
+      responses:
+        '200':
+          description: 成功
+    post:
+      tags:
+        - 报价管理
+      summary: 创建报价单
+      responses:
+        '201':
+          description: 创建成功
+
+  /work-orders:
+    get:
+      tags:
+        - 生产管理
+      summary: 获取工单列表
+      responses:
+        '200':
+          description: 成功
+    post:
+      tags:
+        - 生产管理
+      summary: 创建工单
+      responses:
+        '201':
+          description: 创建成功
+
+  /workshop/start:
+    post:
+      tags:
+        - 车间执行
+      summary: 扫码开工
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                barcode:
+                  type: string
+                machineId:
+                  type: string
+              required:
+                - barcode
+                - machineId
+      responses:
+        '200':
+          description: 开工成功
+
+  /workshop/report:
+    post:
+      tags:
+        - 车间执行
+      summary: 扫码报工
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                barcode:
+                  type: string
+                quantity:
+                  type: integer
+                quality:
+                  type: string
+                  enum:
+                    - ok
+                    - rework
+                    - scrap
+              required:
+                - barcode
+                - quantity
+      responses:
+        '200':
+          description: 报工成功
+
+  /warehouse/stock-in:
+    post:
+      tags:
+        - 仓储管理
+      summary: 扫码入库
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                materialBarcode:
+                  type: string
+                quantity:
+                  type: number
+                locationCode:
+                  type: string
+      responses:
+        '200':
+          description: 入库成功
+
+  /quality/iqc:
+    post:
+      tags:
+        - 品质管理
+      summary: 来料检验
+      responses:
+        '201':
+          description: 检验成功
+
+  /files/upload:
+    post:
+      tags:
+        - 文件管理
+      summary: 文件上传（MinIO）
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                bucket:
+                  type: string
+                  description: 存储桶名称（drawings/attachments/temp）
+      responses:
+        '200':
+          description: 上传成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fileId:
+                    type: string
+                  url:
+                    type: string
+                  size:
+                    type: integer
+
+  /files/{fileId}:
+    get:
+      tags:
+        - 文件管理
+      summary: 文件下载/预览
+      parameters:
+        - name: fileId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum:
+            - potential
+            - active
+            - inactive
+        industry:
+          type: string
+        creditLimit:
+          type: number
+```
+
+---
+
+## 6. Components
+
+### 6.1 Component List
+
+#### API Gateway (cnc-erp-system-gateway)
+
+**Responsibility:** 统一路由、认证鉴权、日志记录、跨域处理
+
+**Key Interfaces:**
+- `/api/auth/*` → 认证服务
+- `/api/sys/*` → 系统服务
+- `/api/biz/*` → 主应用
+
+**Dependencies:** Redis (Session存储), MySQL (路由配置)
+
+**Technology Stack:** Spring Cloud Gateway 2021.0.x, Redis 7.2.x
+
+---
+
+#### Main Application (cnc-erp-system)
+
+**Responsibility:** 核心业务逻辑实现（客户/报价/订单/生产/仓储/委外/品质/财务/人事）
+
+**Key Interfaces:**
+- 业务Service层
+- Repository数据访问层
+- 事件发布接口
+
+**Dependencies:** MySQL, Redis, MinIO, XXL-JOB
+
+**Technology Stack:** Spring Boot 2.7.18, MyBatis-Plus 3.5.x, AWS S3 SDK 2.x (MinIO兼容)
+
+---
+
+#### System Service (cnc-erp-system-service-sys)
+
+**Responsibility:** 用户管理、权限控制、工作流引擎、数据字典
+
+**Key Interfaces:**
+- `UserService`, `RoleService`, `PermissionService`
+- `WorkflowService`, `DictionaryService`
+
+**Dependencies:** MySQL, Redis
+
+**Technology Stack:** Spring Boot 2.7.18, Spring Security 5.7.x
+
+---
+
+#### Report Service (cnc-erp-system-service-report)
+
+**Responsibility:** 产值统计、交期分析、库存报表、财务报表
+
+**Key Interfaces:**
+- `ProductionReportService`, `DeliveryReportService`
+- `InventoryReportService`, `FinancialReportService`
+
+**Dependencies:** MySQL, Redis
+
+**Technology Stack:** Spring Boot 2.7.18, MyBatis-Plus 3.5.x
+
+---
+
+#### Frontend Web (cnc-erp-web)
+
+**Responsibility:** Web端用户界面，响应式设计，支持桌面和移动浏览器
+
+**Key Interfaces:**
+- Vue Router (路由管理)
+- Pinia Store (状态管理)
+- API Client Service (HTTP请求封装)
+
+**Dependencies:** Vue 3.4.x, Element Plus 2.5.x, Vite 5.x
+
+**Technology Stack:** Vue 3.4.x, TypeScript 5.x, Element Plus 2.5.x, Pinia 2.1.x, Tailwind CSS 3.4.x, Vite 5.x
+
+---
+
+#### Android APP (cnc-erp-android)
+
+**Responsibility:** 移动端用户界面，扫码功能为核心
+
+**Key Interfaces:**
+- Jetpack Compose UI
+- CameraX (扫码功能)
+- Retrofit (API调用)
+
+**Dependencies:** Kotlin 1.9.x, Jetpack Compose 1.5.x, CameraX 1.3.x
+
+**Technology Stack:** Kotlin 1.9.x, Jetpack Compose 1.5.x, CameraX 1.3.x, Hilt 2.48.x, Retrofit 2.9.x
+
+---
+
+### 6.2 Component Diagrams
+
+```mermaid
+graph TB
+    subgraph Client["客户端"]
+        Web["Web浏览器"]
+        Android["Android设备"]
+    end
+
+    subgraph Gateway["API网关层"]
+        SCG["Spring Cloud Gateway<br/>:8080"]
+    end
+
+    subgraph MainApp["主应用"]
+        Controller["Controller层"]
+        Service["Service层"]
+        Repository["Repository层"]
+        Entity["Entity层"]
+    end
+
+    subgraph SystemService["系统服务"]
+        SysController["Controller层"]
+        SysService["Service层"]
+        SysRepository["Repository层"]
+    end
+
+    subgraph ReportService["报表服务"]
+        RptController["Controller层"]
+        RptService["Service层"]
+        RptRepository["Repository层"]
+    end
+
+    subgraph Storage["对象存储"]
+        MinIO["MinIO Server<br/>:9000"]
+    end
+
+    Web --> SCG
+    Android --> SCG
+    SCG --> Controller
+    SCG --> SysController
+    SCG --> RptController
+    Controller --> Service
+    Service --> Repository
+    Repository --> Entity
+    Service --> MinIO
+```
+
+---
+
+## 7. External APIs
+
+### 7.1 ZBIntel ERP Integration (智邦ERP)
+
+- **Purpose:** 与现有智邦ERP系统对接，实现数据同步
+- **Documentation:** 待甲方提供接口规范
+- **Base URL(s):** 待确认
+- **Authentication:** 待确认
+- **Rate Limits:** 待确认
+
+**Key Endpoints Used:**
+- 待确认
+
+**Integration Notes:** 需要与现有智邦ERP并行运行，数据同步方案待细化。建议先实现单向数据同步（从智邦到本系统），后续按需扩展。
+
+---
+
+### 7.2 MinIO Object Storage
+
+- **Purpose:** 图纸等文件存储，支持大文件和高可靠性
+- **Documentation:** https://min.io/docs
+- **Base URL(s):** http://localhost:9000 (本地开发)
+- **Authentication:** Access Key + Secret Key
+- **Rate Limits:** 无限制（受服务器硬件限制）
+
+**Key Endpoints Used:**
+- `PUT /{bucket}/{object}` - 文件上传
+- `GET /{bucket}/{object}` - 文件下载
+- `HEAD /{bucket}/{object}` - 获取文件元数据
+- `DELETE /{bucket}/{object}` - 删除文件
+
+**Integration Notes:**
+- **存储桶策略:**
+  - `drawings` - 客户图纸（PDF、CAD文件）
+  - `attachments` - 附件文件
+  - `temp` - 临时文件
+- **文件大小限制:** 单文件最大5GB
+- **纠删码模式:** 生产环境建议配置纠删码提高数据可靠性
+- **S3兼容:** 使用AWS S3 SDK，配置endpoint为MinIO地址即可
+
+**MinIO配置参数:**
+```
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+MINIO_BUCKET_DRAWINGS=drawings
+MINIO_BUCKET_ATTACHMENTS=attachments
+MINIO_BUCKET_TEMP=temp
+```
+
+---
+
+## 8. Core Workflows
+
+```mermaid
+sequenceDiagram
+    participant Sales as 业务员
+    participant System as 系统
+    participant Storage as MinIO存储
+    participant Workshop as 车间
+    participant WH as 仓库
+    participant QA as 品质
+
+    Sales->>System: 创建客户档案
+    Sales->>System: 上传图纸 → MinIO
+    System->>Storage: 保存文件
+    System->>System: 自动计算报价
+    Sales->>System: 提交报价审批
+    System->>System: 多级审批流程
+    Sales->>System: 报价转订单
+    System->>Workshop: 生成工单
+
+    loop 扫码执行
+        Workshop->>System: 扫码开工
+        Workshop->>System: 扫码报工
+        Workshop->>System: 扫码过站
+    end
+
+    System->>WH: 领料申请
+    WH->>System: 扫码出库
+
+    System->>QA: 质检请求
+    QA->>System: FA首件/三次元检测
+
+    System->>Sales: 订单完成通知
+```
+
+---
+
+## 9. Database Schema
+
+```sql
+-- 客户表
+CREATE TABLE customers (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    type ENUM('potential', 'active', 'inactive') NOT NULL DEFAULT 'potential',
+    industry VARCHAR(50),
+    credit_limit DECIMAL(15,2),
+    owner_id VARCHAR(36),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    INDEX idx_code (code),
+    INDEX idx_type (type),
+    INDEX idx_owner (owner_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 联系人表
+CREATE TABLE contacts (
+    id VARCHAR(36) PRIMARY KEY,
+    customer_id VARCHAR(36) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    position VARCHAR(50),
+    phone VARCHAR(20),
+    email VARCHAR(100),
+    is_primary BOOLEAN DEFAULT FALSE,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    INDEX idx_customer (customer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 报价单表
+CREATE TABLE quotations (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    customer_id VARCHAR(36) NOT NULL,
+    delivery_date DATE NOT NULL,
+    valid_until DATE,
+    status ENUM('draft', 'submitted', 'approved', 'rejected', 'converted') NOT NULL DEFAULT 'draft',
+    total_amount DECIMAL(15,2) DEFAULT 0,
+    profit_margin DECIMAL(5,2) DEFAULT 0.15,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    FOREIGN KEY (customer_id) REFERENCES customers(id),
+    INDEX idx_code (code),
+    INDEX idx_customer (customer_id),
+    INDEX idx_status (status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 工单表
+CREATE TABLE work_orders (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    order_id VARCHAR(36) NOT NULL,
+    status ENUM('planned', 'released', 'in_progress', 'paused', 'completed', 'cancelled') NOT NULL DEFAULT 'planned',
+    planned_start_date DATETIME,
+    planned_end_date DATETIME,
+    actual_start_date DATETIME,
+    actual_end_date DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    INDEX idx_code (code),
+    INDEX idx_order (order_id),
+    INDEX idx_status (status),
+    INDEX idx_planned_date (planned_start_date, planned_end_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 物料表
+CREATE TABLE materials (
+    id VARCHAR(36) PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    name VARCHAR(100) NOT NULL,
+    category ENUM('raw_material', 'wip', 'finished_goods') NOT NULL,
+    unit VARCHAR(10) NOT NULL,
+    unit_price DECIMAL(15,4) DEFAULT 0,
+    safety_stock INT DEFAULT 0,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    INDEX idx_code (code),
+    INDEX idx_category (category)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 库存表
+CREATE TABLE inventory (
+    id VARCHAR(36) PRIMARY KEY,
+    material_id VARCHAR(36) NOT NULL,
+    batch_number VARCHAR(50),
+    quantity DECIMAL(15,4) NOT NULL DEFAULT 0,
+    reserved_quantity DECIMAL(15,4) NOT NULL DEFAULT 0,
+    location_code VARCHAR(50),
+    received_date DATETIME,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    FOREIGN KEY (material_id) REFERENCES materials(id),
+    INDEX idx_material (material_id),
+    INDEX idx_location (location_code),
+    INDEX idx_batch (batch_number)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- 文件元数据表
+CREATE TABLE file_metadata (
+    id VARCHAR(36) PRIMARY KEY,
+    file_id VARCHAR(100) NOT NULL UNIQUE,
+    original_name VARCHAR(255) NOT NULL,
+    mime_type VARCHAR(100),
+    size BIGINT NOT NULL DEFAULT 0,
+    bucket VARCHAR(50) NOT NULL,
+    object_key VARCHAR(500) NOT NULL,
+    uploaded_by VARCHAR(36),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    deleted_at DATETIME,
+    INDEX idx_file_id (file_id),
+    INDEX idx_bucket (bucket),
+    INDEX idx_uploaded_by (uploaded_by)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+---
+
+## 10. Frontend Architecture
+
+### 10.1 Component Architecture
+
+#### Component Organization
+
+```
+cnc-erp-web/src/
+├── components/           # 通用组件
+│   ├── common/          # Button, Input, Card, Table, Modal
+│   ├── layout/          # Header, Sidebar, Footer
+│   └── business/        # CustomerCard, QuotationForm, WorkOrderTable
+├── pages/               # 页面组件
+│   ├── dashboard/       # 首页/仪表盘
+│   ├── customer/        # 客户管理
+│   ├── quotation/       # 报价管理
+│   ├── order/           # 订单管理
+│   ├── drawing/         # 图纸管理
+│   ├── production/      # 生产排产
+│   ├── workshop/        # 车间执行
+│   ├── warehouse/       # 仓储管理
+│   ├── quality/         # 品质管理
+│   ├── outsourcing/     # 委外管理
+│   ├── report/          # 报表看板
+│   └── system/          # 系统管理
+├── hooks/               # 自定义Hooks
+│   ├── useAuth.ts      # 认证状态
+│   ├── useCustomer.ts   # 客户相关
+│   └── useWorkOrder.ts  # 工单相关
+├── services/            # API服务层
+│   ├── auth.ts         # 认证服务
+│   ├── customer.ts     # 客户服务
+│   ├── quotation.ts    # 报价服务
+│   └── ...
+├── stores/             # Pinia状态管理
+│   ├── auth.ts         # 认证状态
+│   ├── user.ts         # 用户信息
+│   └── settings.ts     # 系统设置
+├── router/              # 路由配置
+├── styles/              # 全局样式
+└── utils/               # 工具函数
+```
+
+#### Component Template
+
+```typescript
+<!-- Vue3 Composition API + TypeScript -->
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { ElCard } from 'element-plus'
+
+interface Props {
+  title: string
+  data: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits<{
+  (e: 'update', value: any): void
+}>()
+
+const localData = ref(props.data)
+const isLoading = ref(false)
+
+const handleSubmit = async () => {
+  isLoading.value = true
+  try {
+    emit('update', localData.value)
+  } finally {
+    isLoading.value = false
+  }
+}
+</script>
+
+<template>
+  <ElCard class="component-card">
+    <template #header>
+      <span>{{ props.title }}</span>
+    </template>
+    <div class="content">
+      <!-- Content here -->
+    </div>
+  </ElCard>
+</template>
+
+<style scoped>
+.component-card {
+  --el-card-bg: var(--color-bg-surface);
+}
+</style>
+```
+
+---
+
+### 10.2 State Management Architecture
+
+#### State Structure
+
+```typescript
+// stores/auth.ts
+interface AuthState {
+  token: string | null
+  refreshToken: string | null
+  user: User | null
+  permissions: string[]
+}
+
+// stores/workOrder.ts
+interface WorkOrderState {
+  workOrders: WorkOrder[]
+  currentWorkOrder: WorkOrder | null
+  filters: WorkOrderFilters
+  pagination: Pagination
+}
+```
+
+#### State Management Patterns
+
+- ** Authentication State:** 集中管理登录状态，Token自动刷新
+- ** Business Data State:** 按模块分离，Lazy Loading优化性能
+- ** UI State:** 本地组件状态管理，不上浮到全局Store
+- ** Server State:** 使用useFetch等工具，统一错误处理和Loading状态
+
+---
+
+### 10.3 Routing Architecture
+
+#### Route Organization
+
+```typescript
+// router/index.ts
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    component: Layout,
+    children: [
+      { path: '', redirect: '/dashboard' },
+      { path: 'dashboard', component: () => import('@/pages/dashboard/index.vue') },
+      { path: 'customers', component: () => import('@/pages/customer/index.vue') },
+      { path: 'quotations', component: () => import('@/pages/quotation/index.vue') },
+      // ...
+    ]
+  },
+  {
+    path: '/login',
+    component: () => import('@/pages/login/index.vue')
+  }
+]
+```
+
+#### Protected Route Pattern
+
+```typescript
+// router guard
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next('/login')
+  } else {
+    next()
+  }
+})
+```
+
+---
+
+### 10.4 Frontend Services Layer
+
+#### API Client Setup
+
+```typescript
+// services/api.ts
+import axios from 'axios'
+import { useAuthStore } from '@/stores/auth'
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+  timeout: 10000
+})
+
+api.interceptors.request.use(config => {
+  const authStore = useAuthStore()
+  if (authStore.token) {
+    config.headers.Authorization = `Bearer ${authStore.token}`
+  }
+  return config
+})
+
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    if (error.response?.status === 401) {
+      // Handle token refresh
+    }
+    return Promise.reject(error)
+  }
+)
+
+export default api
+```
+
+#### Service Example
+
+```typescript
+// services/customer.ts
+import api from './api'
+import type { Customer, Pagination, QueryParams } from '@/types'
+
+export const customerService = {
+  list(params: QueryParams) {
+    return api.get<{ data: Customer[]; total: number }>('/customers', { params })
+  },
+  get(id: string) {
+    return api.get<Customer>(`/customers/${id}`)
+  },
+  create(data: Partial<Customer>) {
+    return api.post<Customer>('/customers', data)
+  },
+  update(id: string, data: Partial<Customer>) {
+    return api.put<Customer>(`/customers/${id}`, data)
+  },
+  delete(id: string) {
+    return api.delete(`/customers/${id}`)
+  }
+}
+```
+
+#### File Upload Service
+
+```typescript
+// services/file.ts
+import api from './api'
+
+export const fileService = {
+  upload(file: File, bucket: 'drawings' | 'attachments' | 'temp') {
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('bucket', bucket)
+    return api.post<{ fileId: string; url: string; size: number }>('/files/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    })
+  },
+  getUrl(fileId: string) {
+    return api.get<{ url: string }>(`/files/${fileId}/url`)
+  },
+  getPreviewUrl(fileId: string) {
+    return api.get<{ url: string }>(`/files/${fileId}/preview-url`)
+  }
+}
+```
+
+---
+
+## 11. Backend Architecture
+
+### 11.1 Service Architecture
+
+#### Controller/Route Organization
+
+```
+cnc-erp-system/src/main/java/com/cnc/erp/
+├── controller/          # REST Controller
+│   ├── AuthController.java
+│   ├── CustomerController.java
+│   ├── QuotationController.java
+│   └── ...
+├── service/            # 业务逻辑
+│   ├── CustomerService.java
+│   ├── QuotationService.java
+│   └── ...
+├── repository/          # 数据访问
+│   ├── CustomerRepository.java
+│   ├── QuotationRepository.java
+│   └── ...
+├── entity/              # JPA Entity
+│   ├── Customer.java
+│   ├── Quotation.java
+│   └── ...
+├── dto/                 # 数据传输对象
+│   ├── CustomerDTO.java
+│   └── ...
+├── config/              # 配置类
+│   └── SecurityConfig.java
+└── CncErpApplication.java
+```
+
+#### Controller Template
+
+```java
+@RestController
+@RequestMapping("/api/customers")
+@RequiredArgsConstructor
+@Slf4j
+public class CustomerController {
+
+    private final CustomerService customerService;
+
+    @GetMapping
+    public Result<Page<CustomerDTO>> list(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "20") Integer pageSize,
+            @RequestParam(required = false) String keyword) {
+        return Result.success(customerService.list(page, pageSize, keyword));
+    }
+
+    @PostMapping
+    public Result<CustomerDTO> create(@Validated @RequestBody CustomerCreateDTO dto) {
+        return Result.success(customerService.create(dto));
+    }
+
+    @GetMapping("/{id}")
+    public Result<CustomerDTO> get(@PathVariable String id) {
+        return Result.success(customerService.get(id));
+    }
+}
+```
+
+---
+
+### 11.2 Database Architecture
+
+#### Schema Design
+
+- 使用MyBatis-Plus作为ORM框架
+- Entity类使用MyBatis-Plus注解配置映射关系
+- 支持逻辑删除（deleted_at字段）
+- UUID作为主键策略
+- 时间戳自动维护（created_at, updated_at）
+
+#### Data Access Layer
+
+```java
+@Repository
+@RequiredArgsConstructor
+public class CustomerRepository {
+
+    private final CustomerMapper customerMapper;
+
+    public Page<Customer> list(int page, int pageSize, String keyword) {
+        LambdaQueryWrapper<Customer> wrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.isNotBlank(keyword)) {
+            wrapper.like(Customer::getName, keyword)
+                   .or()
+                   .like(Customer::getCode, keyword);
+        }
+        wrapper.orderByDesc(Customer::getCreatedAt);
+        return customerMapper.selectPage(new Page<>(page, pageSize), wrapper);
+    }
+}
+```
+
+---
+
+### 11.3 Authentication and Authorization
+
+#### Auth Flow
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Gateway as API网关
+    participant Auth as 认证服务
+    participant DB as 数据库
+
+    User->>Gateway: POST /api/auth/login
+    Gateway->>Auth: Forward login request
+    Auth->>DB: Validate credentials
+    Auth->>Auth: Generate JWT tokens
+    Auth-->>Gateway: Return tokens
+    Gateway-->>User: Return tokens
+
+    User->>Gateway: GET /api/customers (with JWT)
+    Gateway->>Gateway: Validate JWT
+    Gateway->>Auth: Check permissions
+    Auth-->>Gateway: Permission OK
+    Gateway->>Auth: Forward request
+    Auth-->>User: Return data
+```
+
+#### Middleware/Guards
+
+```java
+@Configuration
+@EnableWebSecurity
+public class SecurityConfig {
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf().disable()
+            .authorizeHttpRequests(auth -> auth
+                .antMatchers("/api/auth/**").permitAll()
+                .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        return http.build();
+    }
+}
+```
+
+---
+
+### 11.4 MinIO Integration
+
+#### MinIO配置
+
+```yaml
+# application.yml
+minio:
+  endpoint: http://localhost:9000
+  access-key: minioadmin
+  secret-key: minioadmin
+  buckets:
+    drawings: drawings
+    attachments: attachments
+    temp: temp
+```
+
+#### MinIO Service
+
+```java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class MinioFileService {
+
+    private final MinioClient minioClient;
+
+    @Value("${minio.buckets.drawings}")
+    private String drawingsBucket;
+
+    public String uploadFile(MultipartFile file, String bucket) {
+        String objectKey = generateObjectKey(file.getOriginalFilename());
+        try {
+            PutObjectArgs args = PutObjectArgs.builder()
+                .bucket(bucket)
+                .object(objectKey)
+                .stream(file.getInputStream(), file.getSize(), -1)
+                .contentType(file.getContentType())
+                .build();
+            minioClient.putObject(args);
+            return objectKey;
+        } catch (Exception e) {
+            log.error("Failed to upload file", e);
+            throw new BusinessException("FILE_UPLOAD_FAILED", "文件上传失败");
+        }
+    }
+
+    public String getPresignedUrl(String bucket, String objectKey) {
+        try {
+            return minioClient.getPresignedObjectUrl(
+                GetPresignedObjectUrlArgs.builder()
+                    .bucket(bucket)
+                    .object(objectKey)
+                    .expiry(3600)
+                    .build()
+            );
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL", e);
+            throw new BusinessException("FILE_URL_GENERATE_FAILED", "文件URL生成失败");
+        }
+    }
+
+    private String generateObjectKey(String originalFilename) {
+        return String.format("%s/%s_%s",
+            LocalDate.now().format(DateTimeFormatter.ISO_DATE),
+            UUID.randomUUID().toString().substring(0, 8),
+            originalFilename);
+    }
+}
+```
+
+---
+
+## 12. Source Tree
+
+```
+cnc-erp-system/
+├── .github/
+│   └── workflows/
+│       ├── ci.yaml
+│       └── deploy.yaml
+├── cnc-erp-system/                    # 主应用模块
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/com/cnc/erp/
+│   │   │   │   ├── controller/
+│   │   │   │   ├── service/
+│   │   │   │   ├── repository/
+│   │   │   │   ├── entity/
+│   │   │   │   ├── dto/
+│   │   │   │   ├── config/
+│   │   │   │   └── util/
+│   │   │   └── resources/
+│   │   │       ├── application.yml
+│   │   │       └── mapper/
+│   │   └── test/
+│   │       └── java/
+│   └── pom.xml
+├── cnc-erp-system-service-sys/        # 系统服务模块
+├── cnc-erp-system-service-report/      # 报表服务模块
+├── cnc-erp-system-gateway/             # API网关模块
+├── cnc-erp-web/                        # 前端Web应用
+│   ├── src/
+│   │   ├── components/
+│   │   ├── pages/
+│   │   ├── hooks/
+│   │   ├── services/
+│   │   ├── stores/
+│   │   ├── router/
+│   │   ├── styles/
+│   │   └── utils/
+│   ├── public/
+│   ├── tests/
+│   ├── package.json
+│   ├── vite.config.ts
+│   └── tsconfig.json
+├── cnc-erp-android/                   # Android APP应用
+│   ├── app/
+│   │   └── src/main/
+│   │       ├── java/com/cnc/erp/
+│   │       │   ├── ui/
+│   │       │   ├── viewmodel/
+│   │       │   ├── repository/
+│   │       │   └── di/
+│   │       └── res/
+│   ├── build.gradle
+│   └── settings.gradle
+├── docs/                               # 文档
+│   ├── prd.md
+│   ├── front-end-spec.md
+│   └── fullstack-architecture.md
+├── infrastructure/                      # IaC定义
+│   └── ansible/
+├── scripts/                            # 构建脚本
+├── .env.example
+├── pom.xml                            # 父POM
+└── README.md
+```
+
+---
+
+## 13. Development Workflow
+
+### 13.1 Local Development Setup
+
+#### Prerequisites
+
+```bash
+# Java 17
+java -version  # openjdk 17.0.x
+
+# Node.js 20
+node -v # v20.x.x
+
+# Maven 3.9
+mvn -v # Apache Maven 3.9.x
+
+# MySQL 8.0 (Docker)
+docker pull mysql:8.0
+
+# Redis 7 (Docker)
+docker pull redis:7.2
+
+# MinIO (Docker)
+docker pull minio/minio
+```
+
+#### Initial Setup
+
+```bash
+# Clone and setup
+git clone git@github.com:your-org/cnc-erp-system.git
+cd cnc-erp-system
+
+# Backend setup
+cd cnc-erp-system
+mysql -u root -p < src/main/resources/db/init.sql
+mvn clean install -DskipTests
+
+# Frontend setup
+cd ../cnc-erp-web
+npm install
+
+# Start infrastructure
+docker run -d --name mysql -p 3306:3306 \
+  -e MYSQL_ROOT_PASSWORD=root123 \
+  mysql:8.0
+
+docker run -d --name redis -p 6379:6379 \
+  redis:7.2
+
+# Start MinIO
+docker run -d --name minio -p 9000:9000 -p 9001:9001 \
+  -e MINIO_ROOT_USER=minioadmin \
+  -e MINIO_ROOT_PASSWORD=minioadmin \
+  minio/minio server /data --console-address ":9001"
+```
+
+#### Development Commands
+
+```bash
+# Start all services
+cd cnc-erp-system && mvn spring-boot:run &
+cd cnc-erp-system-service-sys && mvn spring-boot:run &
+cd cnc-erp-system-service-report && mvn spring-boot:run &
+cd cnc-erp-system-gateway && mvn spring-boot:run &
+
+# Start frontend only
+cd cnc-erp-web && npm run dev
+
+# Run tests
+cd cnc-erp-system && mvn test
+cd cnc-erp-web && npm run test:unit && npm run test:e2e
+```
+
+### 13.2 Environment Configuration
+
+#### Required Environment Variables
+
+```bash
+# Backend (.env)
+SPRING_PROFILES_ACTIVE=development
+SERVER_PORT=8081
+MYSQL_HOST=localhost
+MYSQL_PORT=3306
+MYSQL_DATABASE=cnc_erp
+MYSQL_USERNAME=root
+MYSQL_PASSWORD=root123
+REDIS_HOST=localhost
+REDIS_PORT=6379
+MINIO_ENDPOINT=http://localhost:9000
+MINIO_ACCESS_KEY=minioadmin
+MINIO_SECRET_KEY=minioadmin
+JWT_SECRET=your-secret-key-at-least-32-characters
+JWT_EXPIRATION=900000
+JWT_REFRESH_EXPIRATION=604800000
+
+# Frontend (.env.local)
+VITE_API_BASE_URL=http://localhost:8080/api
+VITE_APP_TITLE=CNC加工厂ERP系统
+```
+
+---
+
+## 14. Deployment Architecture
+
+### 14.1 Deployment Strategy
+
+**Frontend Deployment:**
+- **Platform:** Nginx
+- **Build Command:** `npm run build`
+- **Output Directory:** `dist/`
+- **CDN/Edge:** 可选CDN加速
+
+**Backend Deployment:**
+- **Platform:** 私有化服务器 (Linux)
+- **Build Command:** `mvn clean package -DskipTests`
+- **Deployment Method:** Systemd服务管理
+
+**MinIO Deployment:**
+- **Platform:** Docker Compose 或独立部署
+- **Data Volume:** /data/volumes/minio
+- **Console:** :9001 (可选关闭)
+- **Mode:** 纠删码模式（生产环境）
+
+### 14.2 CI/CD Pipeline
+
+```yaml
+# .github/workflows/ci.yaml
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
+      - name: Build Frontend
+        run: |
+          cd cnc-erp-web
+          npm install
+          npm run build
+```
+
+### 14.3 Environments
+
+| Environment | Frontend URL | Backend URL | MinIO Console |
+|-------------|--------------|-------------|---------------|
+| Development | http://localhost:3000 | http://localhost:8080 | http://localhost:9001 |
+| Staging | http://staging.cnc-erp.internal | http://staging-api.cnc-erp.internal | http://staging-minio.cnc-erp.internal |
+| Production | http://erp.cnc-erp.com | http://api.cnc-erp.com | http://minio.cnc-erp.com/console |
+
+---
+
+## 15. Security and Performance
+
+### 15.1 Security Requirements
+
+**Frontend Security:**
+- CSP Headers: `default-src 'self'; script-src 'self'`
+- XSS Prevention: 输入校验 + 输出转义
+- Secure Storage: Token存储在memory，避免localStorage XSS
+
+**Backend Security:**
+- Input Validation: Hibernate Validator + 自定义校验注解
+- Rate Limiting: Spring Cloud Gateway全局限流
+- CORS Policy: 只允许白名单域名
+
+**Authentication Security:**
+- Token Storage: Access Token 15min + Refresh Token 7 days
+- Session Management: Redis存储Session，支持集群部署
+- Password Policy: 8-32位，必须包含大小写字母和数字
+
+**MinIO Security:**
+- Access Key/Secret Key: 强密码策略，定期轮换
+- Bucket Policy: 按业务划分存储桶，最小权限原则
+- Network: 仅内网访问，不暴露公网
+- TLS: 生产环境必须启用HTTPS
+
+### 15.2 Performance Optimization
+
+**Frontend Performance:**
+- Bundle Size Target: < 500KB (首屏)
+- Loading Strategy: Code Splitting + Lazy Loading
+- Caching Strategy: Service Worker缓存静态资源
+
+**Backend Performance:**
+- Response Time Target: < 2s (普通查询), < 10s (复杂报表)
+- Database Optimization: 合理索引 + SQL优化
+- Caching Strategy: Redis缓存热点数据
+
+**MinIO Performance:**
+- 单文件最大: 5GB
+- 建议文件大小: < 100MB（图纸预览优化）
+- 并发上传: 支持断点续传
+
+---
+
+## 16. Testing Strategy
+
+### 16.1 Testing Pyramid
+
+```
+        E2E Tests
+       /        \
+  Integration Tests
+     /         \
+Frontend Unit  Backend Unit
+```
+
+### 16.2 Test Organization
+
+#### Frontend Tests
+
+```
+cnc-erp-web/tests/
+├── unit/
+│   ├── components/
+│   ├── hooks/
+│   └── services/
+└── e2e/
+    ├── specs/
+    └── fixtures/
+```
+
+#### Backend Tests
+
+```
+cnc-erp-system/src/test/
+├── unit/
+│   ├── service/
+│   └── repository/
+└── integration/
+    └── controller/
+```
+
+### 16.3 Test Examples
+
+#### Frontend Component Test
+
+```typescript
+import { describe, it, expect } from 'vitest'
+import { mount } from '@vue/test-utils'
+import CustomerCard from '@/components/business/CustomerCard.vue'
+
+describe('CustomerCard', () => {
+  it('renders customer name', () => {
+    const wrapper = mount(CustomerCard, {
+      props: { customer: { name: '测试客户', code: 'CUST-001' } }
+    })
+    expect(wrapper.text()).toContain('测试客户')
+  })
+})
+```
+
+#### Backend API Test
+
+```java
+@SpringBootTest
+@AutoConfigureMockMvc
+class CustomerControllerTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Test
+    void shouldReturnCustomers() throws Exception {
+        mockMvc.get("/api/customers")
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data").isArray());
+    }
+}
+```
+
+---
+
+## 17. Coding Standards
+
+### 17.1 Critical Fullstack Rules
+
+- **Type Sharing:** 前后端共享类型定义在 `packages/shared` 包，前端通过 npm 包引用
+- **API Calls:** 前端只通过 Service 层调用API，不直接使用 axios
+- **Environment Variables:** 后端通过 `@ConfigurationProperties` 注入，前端通过 import.meta.env 读取
+- **Error Handling:** Controller 层统一异常处理，返回标准 Result 格式
+- **State Updates:** Vue 使用 Pinia，React 使用 useReducer，禁止直接 mutation
+- **Database Access:** 统一使用 Repository 模式，禁止在 Service 层直接写SQL
+- **File Storage:** 所有文件通过 MinIO 存储，不使用本地文件系统
+- **Code Reviews:** 所有 PR 必须通过至少1人 review 才能合并
+
+### 17.2 Naming Conventions
+
+| Element | Frontend | Backend | Example |
+|---------|----------|---------|---------|
+| Components | PascalCase | - | `CustomerCard.vue` |
+| Hooks | camelCase with 'use' | - | `useAuth.ts` |
+| API Routes | kebab-case | kebab-case | `/api/customer-profile` |
+| Database Tables | snake_case | snake_case | `customer_profiles` |
+| Java Classes | PascalCase | PascalCase | `CustomerService` |
+| Java Methods | camelCase | camelCase | `getCustomerById` |
+| Variables | camelCase | camelCase | `customerName` |
+| Constants | UPPER_SNAKE_CASE | UPPER_SNAKE_CASE | `MAX_RETRY_COUNT` |
+| MinIO Buckets | kebab-case | kebab-case | `customer-drawings` |
+
+---
+
+## 18. Error Handling Strategy
+
+### 18.1 Error Flow
+
+```mermaid
+sequenceDiagram
+    participant Client as 客户端
+    participant Gateway as API网关
+    participant Service as 业务服务
+    participant MinIO as MinIO存储
+    participant DB as 数据库
+
+    Client->>Gateway: API Request
+    Gateway->>Service: Forward Request
+    Service->>DB: Query/Update
+    Service->>MinIO: Upload/Download File
+    DB-->>Service: Error
+    MinIO-->>Service: Error
+    Service-->>Gateway: Business Exception
+    Gateway-->>Client: Error Response
+
+    Note over Service: 统一异常处理
+    Note over Gateway: JWT校验 + 限流
+```
+
+### 18.2 Error Response Format
+
+```typescript
+interface ApiError {
+  error: {
+    code: string;        // 业务错误码
+    message: string;     // 用户可读消息
+    details?: Record<string, any>;  // 详细信息
+    timestamp: string;   // 时间戳
+    requestId: string;  // 请求追踪ID
+  };
+}
+```
+
+### 18.3 Frontend Error Handling
+
+```typescript
+// services/api.ts
+api.interceptors.response.use(
+  response => response,
+  error => {
+    const errorResponse = error.response?.data
+    if (errorResponse?.error?.code) {
+      // 业务错误，显示错误消息
+      ElMessage.error(errorResponse.error.message)
+    } else {
+      // 系统错误，显示通用消息
+      ElMessage.error('网络错误，请稍后重试')
+    }
+    return Promise.reject(error)
+  }
+)
+```
+
+### 18.4 Backend Error Handling
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(BusinessException.class)
+    public Result<?> handleBusinessException(BusinessException e) {
+        log.warn("Business error: {}", e.getMessage());
+        return Result.error(e.getCode(), e.getMessage());
+    }
+
+    @ExceptionHandler(MinioException.class)
+    public Result<?> handleMinioException(MinioException e) {
+        log.error("MinIO error", e);
+        return Result.error("FILE_ERROR", "文件服务异常，请稍后重试");
+    }
+
+    @ExceptionHandler(Exception.class)
+    public Result<?> handleException(Exception e) {
+        log.error("System error", e);
+        return Result.error("SYSTEM_ERROR", "系统错误，请稍后重试");
+    }
+}
+```
+
+---
+
+## 19. Monitoring and Observability
+
+### 19.1 Monitoring Stack
+
+- **Frontend Monitoring:** Sentry (JavaScript错误追踪)
+- **Backend Monitoring:** Prometheus + Micrometer
+- **Error Tracking:** Sentry (后端Java)
+- **Performance Monitoring:** Grafana (Dashboards)
+- **MinIO Monitoring:** MinIO Console + Prometheus metrics endpoint
+
+### 19.2 Key Metrics
+
+**Frontend Metrics:**
+- Core Web Vitals (LCP, FID, CLS)
+- JavaScript errors
+- API response times
+- User interactions
+
+**Backend Metrics:**
+- Request rate
+- Error rate
+- Response time
+- Database query performance
+- JVM metrics (CPU, Memory, GC)
+
+**MinIO Metrics:**
+- Object count per bucket
+- Disk usage
+- Upload/Download throughput
+- Health status
+
+---
+
+## 20. Checklist Results Report
+
+> 在运行检查清单并生成报告之前，请确认是否要继续生成完整的架构文档？
+
+---
+
+📄 文档已更新并保存到 `docs/architecture.md`
+
+---
+
+## 关键决策与待确认项
+
+### 🔴 需要确认 (低置信度)
+
+1. **存储方案** — 已改为MinIO对象存储
+   - 原因: 企业级对象存储，支持大文件（图纸CAD），兼容S3协议便于未来迁移
+   - 备选: 本地/NAS（已放弃）、阿里云OSS（成本更高）
+
+2. **平台选择** — 选择了私有化部署（单台服务器）
+   - 原因: CNC行业客户普遍偏好私有化部署，数据安全要求高
+   - 备选: 云原生部署（阿里云/腾讯云）
+
+3. **前端UI框架** — 选择了 Vue3 + Element Plus + Tailwind CSS
+   - 原因: Element Plus 组件丰富，适合企业级应用
+   - 备选: Vue3 + Ant Design Vue
+
+### 🟡 建议审阅 (中等置信度)
+
+4. **API风格** — 选择了 REST
+   - 原因: 简单直观，易于调试和文档化
+   - 备选: GraphQL（适合复杂查询场景）
+
+5. **Android UI框架** — 选择了 Jetpack Compose
+   - 原因: 现代声明式UI，性能优秀
+   - 备选: XML布局 + ViewBinding
+
+### 🟢 已按常规处理 (高置信度)
+
+6. **技术栈版本** — 采用了各技术栈的稳定版本（LTS）
+7. **架构模式** — 采用了 Monolith + 微服务的混合架构
+8. **认证方式** — 采用了 JWT + Refresh Token 方案
+
+---
+
+请查看文档后告诉我：
+1. 以上决策有需要调整的吗？
+2. 有其他想补充或修改的内容吗？
+3. 如需对某个章节做深度探索，可以使用 `*elicit {section_id}`

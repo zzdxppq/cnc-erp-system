@@ -1,0 +1,2446 @@
+# CNC加工厂ERP系统 产品需求文档 (PRD)
+
+---
+
+## 文档信息
+
+| 项目名称 | CNC加工厂ERP系统 |
+|---------|-----------------|
+| 文档版本 | V1.0 |
+| 创建日期 | 2026-06-02 |
+| 状态 | 初稿 |
+| 创建人 | 范蠡（产品经理） |
+
+---
+
+## 1. Goals and Background Context
+
+### 1.1 Goals
+
+- 实现客户→报价→订单→生产→车间→仓储→委外→品质的核心流程贯通
+- 扫码开工、扫码报工、扫码过站三个核心场景在1-2个工单上试点验证
+- 报表看板显示产值、交付、逾期关键指标
+- 系统支持100人同时在线，普通查询≤2秒
+- 报价周期从3-5天缩短至1-2天
+- 订单交付准时率从70%提升至90%
+
+### 1.2 Background Context
+
+CNC加工厂ERP系统面向CNC机加工行业，针对离散型制造企业的核心业务痛点，打造一套集客户管理、报价订单、生产排产、车间执行、品质管控、仓储物流、委外加工、财务人事于一体的综合ERP管理平台。
+
+CNC机加工行业具有显著的行业特征：非标定制件多、工序流转复杂、委外加工频繁、图纸管理核心、编程管理依赖历史积累、材料管理需追踪损耗、产能依赖设备状态、品质检测要求严格。传统通用型ERP难以满足这些细分需求，亟需一套贴合行业特点的专业化解决方案。
+
+### 1.3 Change Log
+
+| Date | Version | Description | Author |
+|------|---------|-------------|--------|
+| 2026-06-02 | V1.0 | 初稿生成 | 范蠡 |
+
+---
+
+## 2. Requirements
+
+### 2.1 Functional Requirements
+
+- FR1: 客户管理 - 客户档案、联系人、洽谈进展、客户保护机制、积分管理
+- FR2: 报价管理 - 图纸上传、BOM报价预估、多级审批、报价转订单
+- FR3: 订单管理 - 订单录入/审批、进度跟踪、报价转订单
+- FR4: 图纸管理 - 客户图纸上传、在线预览、工程转化、版本管理、打印随单
+- FR5: BOM管理 - 物料编码规则、BOM维护、BOM版本管理
+- FR6: 生产排产 - 订单转工单、工序排程、机台分配、自/外协判定
+- FR7: 车间管理 - 扫码开工、扫码报工、扫码过站、工序报工、领料管理
+- FR8: 仓储管理 - APP扫码出入库、库存查询、条码管理
+- FR9: 品质管理 - 来料检验、FA首件确认、三次元检测、质检报告
+- FR10: 委外管理 - 外协厂商、委外下单、委外跟踪、委外对账
+- FR11: 系统管理 - 用户管理、角色权限、工作流配置、数据字典
+- FR12: 财务管理 - 应收应付、成本核算、财务报表
+- FR13: 人事管理 - 考勤管理、薪资计算、员工档案
+
+### 2.2 Non-Functional Requirements
+
+- NFR1: 普通查询响应时间 ≤2秒
+- NFR2: 复杂报表响应时间 ≤10秒
+- NFR3: 支持100人同时在线
+- NFR4: Web浏览器支持Chrome/Edge/Firefox最新版
+- NFR5: Android APP支持Android 8.0+
+- NFR6: 单台服务器私有化部署（8核32G起步）
+- NFR7: 图纸文件存储支持本地/NAS（2T，按需扩容）
+- NFR8: 用户认证采用JWT + 验证码
+- NFR9: 操作日志完整记录（Spring Boot Audit）
+- NFR10: 敏感数据加密存储（AES）
+
+---
+
+## 3. User Interface Design Goals
+
+> ⚠️ 以下为基于项目背景的合理推断，实际以UX专家评审为准
+
+### 3.1 Overall UX Vision
+
+极致简洁、直观高效。面向车间操作工（35岁以下，初中/中专学历，熟练操作智能手机）和业务员/工程师（28-45岁，大专以上学历）。核心场景（扫码报工）做到3步以内完成，重要信息一目了然。
+
+### 3.2 Key Interaction Paradigms
+
+- **扫码优先**: 扫码枪/PDA一键触发，减少手工录入
+- **卡片式信息展示**: 关键数据（工单状态、库存数量、产值）以卡片形式呈现
+- **移动端优先**: APP端采用单手操作设计，大按钮、低层级
+- **即时反馈**: 每次操作有明确的成功/失败提示
+
+### 3.3 Core Screens and Views
+
+| 优先级 | 模块 | 核心页面 | 说明 |
+|--------|------|---------|------|
+| P0 | 客户管理 | 客户列表、客户详情 | 快速检索客户，支持模糊搜索 |
+| P0 | 报价管理 | 报价单列表、报价单新增/编辑 | 图纸上传、BOM录入、审批流程 |
+| P0 | 订单管理 | 订单列表、订单详情 | 进度跟踪、报价转订单 |
+| P0 | 图纸管理 | 图纸列表、图纸详情/预览 | 版本管理、打印随单 |
+| P0 | 生产排产 | 工单列表、甘特图排程 | 订单转工单、机台分配 |
+| P0 | 车间管理 | 扫码开工、扫码报工、扫码过站 | APP端核心操作 |
+| P0 | 仓储管理 | 入库单、出库单、库存查询 | APP扫码出入库 |
+| P0 | 品质管理 | 质检列表、质检详情 | FA首件、三次元检测 |
+| P1 | 委外管理 | 外协单、委外跟踪、对账 | 委外下发、进度跟踪 |
+| P1 | 报表看板 | 产值看板、交付看板、库存看板 | 关键指标实时呈现 |
+| P2 | 财务管理 | 应收应付、成本核算 | 关联订单和采购 |
+| P2 | 人事管理 | 考勤打卡、薪资计算 | 关联车间报工 |
+
+### 3.4 Accessibility
+
+WCAG AA（移动端无障碍设计：触控区域≥48dp、足够的颜色对比度）
+
+### 3.5 Branding
+
+无特殊品牌要求，保持简洁专业的企业级风格。
+
+### 3.6 Target Device and Platforms
+
+Cross-Platform（Web Responsive + Android Native APP）
+
+---
+
+## 4. Technical Assumptions
+
+### 4.1 Repository Structure
+
+Monorepo（单仓库Maven多模块项目）
+- 4个后端模块：主应用、系统服务、报表服务、API网关
+- 1个前端Web应用
+- 1个Android移动APP
+
+### 4.2 Service Architecture
+
+Monolith + 2 Microservices（单仓库多模块Maven项目）
+- 主应用：业务服务（客户/报价/订单/生产/仓储/委外/品质/财务/人事）
+- 微服务1：系统服务（用户/权限/工作流/字典）
+- 微服务2：报表服务（产值/交期/库存/财务报表）
+- API网关：Spring Cloud Gateway（路由 + 认证鉴权）
+
+### 4.3 Testing Requirements
+
+Unit + Integration（前端单元测试、后端集成测试）
+
+### 4.4 Repository Details
+
+| Repository Name | Type | Technology | Team | 说明 |
+|-----------------|------|------------|------|------|
+| cnc-erp-system | monorepo (multi-module) | Java + Spring Boot 2.7.x + Maven | 后端团队 | 后端单体，包含主应用、系统服务、报表服务、网关模块 |
+| cnc-erp-web | frontend | Vue3 + Element Plus | 前端团队 | Web前端应用 |
+| cnc-erp-android | mobile | Android + Kotlin | 移动团队 | Android移动APP |
+
+> **架构说明:** 后端采用Maven多模块单仓库架构，各模块（主应用、系统服务、报表服务、网关）在一个Git仓库中通过Maven子项目组织，通过`pom.xml`统一依赖版本管理。
+
+### 4.5 Additional Technical Assumptions and Requests
+
+- 数据库：MySQL 8.0（单主库）
+- 缓存：Redis（热点数据缓存、Session共享）
+- 文件存储：本地存储（2T，按需扩容）/ 阿里云OSS（可选）
+- 定时任务：XXL-JOB（统一调度管理）
+- 与智邦ERP数据对接需求（具体接口规范待确认）
+- JWT + 验证码认证，细粒度权限控制（角色+金额分级）
+- 操作日志完整记录，敏感数据AES加密存储
+
+---
+
+## 5. Epic List
+
+| # | Epic | Goal |
+|---|------|------|
+| 1 | Foundation & Core Infrastructure | 建立项目基础：系统服务（用户/权限/工作流/字典）、API网关、数据库设计、CI/CD、基础架构代码生成 |
+| 2 | Customer & Quotation Management | 客户档案、联系人、洽谈进展、报价录入、图纸上传、BOM估算、报价审批、报价转订单 |
+| 3 | Order & Drawing Management | 销售订单、订单审批、图纸全生命周期管理、工程转化、打印随单 |
+| 4 | Production Planning & Scheduling | 订单转工单、工序排程、机台分配、自/外协判定、甘特图排程 |
+| 5 | Workshop Execution (Scan-based) | 扫码开工、扫码报工、扫码过站、工序报工、领料管理、工单状态追踪 |
+| 6 | Warehouse & Quality Management | APP扫码出入库、库存查询、条码管理、来料检验、FA首件、三次元检测、质检报告 |
+| 7 | Outsourcing & Supplier Management | 外协厂商管理、委外下单、委外跟踪、委外对账 |
+| 8 | Reporting & Dashboard | 产值看板、交付看板、逾期看板、库存看板、财务报表 |
+
+---
+
+## 6. Epics
+
+## Epic 1: Foundation & Core Infrastructure
+
+**Epic Summary:** 建立项目基础架构，包括系统服务（用户管理、权限控制、工作流引擎、数据字典）、API网关、数据库设计、CI/CD流水线、基础代码生成框架。确保后续业务模块开发有坚实的地基。
+
+**Target Repositories:** cnc-erp-system (后端单体), cnc-erp-web (前端), cnc-erp-android (移动端)
+
+```yaml
+epic_id: 1
+title: "Foundation & Core Infrastructure"
+description: |
+  建立项目基础架构。系统服务提供用户管理、权限控制、工作流引擎、数据字典等基础能力。
+  API网关统一处理路由、认证鉴权、日志记录。数据库设计遵循模块化原则，为后续业务扩展预留空间。
+  CI/CD确保代码质量，基础代码生成提升开发效率。
+
+stories:
+  - id: "1.1"
+    title: "System Service - User Management & Authentication"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "User registration and JWT authentication"
+        scenario:
+          given: "User is not registered in the system"
+          when: "User submits valid registration data via POST /api/auth/register"
+          then:
+            - "New user record is created in database"
+            - "Password is hashed using bcrypt with cost factor 12"
+            - "Response returns 201 with user object (excluding password)"
+            - "JWT access token is generated (15 min expiry)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Email must be unique across all users"
+          - id: "BR-1.2"
+            rule: "Password must be 8-32 characters with at least one uppercase, one lowercase, and one digit"
+          - id: "BR-1.3"
+            rule: "New accounts are created with status 'active'"
+
+        data_validation:
+          - field: "email"
+            type: "email"
+            required: true
+            rules: "RFC 5322 compliant, max 255 characters"
+            error_message: "请输入有效的邮箱地址"
+          - field: "password"
+            type: "string"
+            required: true
+            rules: "8-32 chars, must contain [A-Z], [a-z], [0-9]"
+            error_message: "密码必须8-32位，包含大小写字母和数字"
+
+        error_handling:
+          - scenario: "Email already registered"
+            code: "409"
+            message: "该邮箱已被注册"
+            action: "返回错误，建议登录或找回密码"
+          - scenario: "Password does not meet requirements"
+            code: "400"
+            message: "密码不满足安全要求"
+            action: "返回具体的不满足项"
+
+      - id: AC2
+        title: "User login with credentials"
+        scenario:
+          given: "User has an active account"
+          when: "User submits valid credentials via POST /api/auth/login"
+          then:
+            - "JWT access token is generated (15 min expiry)"
+            - "JWT refresh token is generated (7 day expiry)"
+            - "Tokens are returned in response body"
+            - "Last login timestamp is updated"
+
+        business_rules:
+          - id: "BR-2.1"
+            rule: "Failed login attempts are tracked; lock account after 5 consecutive failures"
+          - id: "BR-2.2"
+            rule: "Account lockout duration is 15 minutes"
+          - id: "BR-2.3"
+            rule: "JWT access token contains: user_id, username, roles"
+
+        data_validation:
+          - field: "email"
+            type: "email"
+            required: true
+            rules: "Valid email format"
+            error_message: "请输入邮箱地址"
+          - field: "password"
+            type: "string"
+            required: true
+            rules: "Non-empty string"
+            error_message: "请输入密码"
+
+        error_handling:
+          - scenario: "Invalid credentials"
+            code: "401"
+            message: "邮箱或密码错误"
+            action: "不提示具体哪个字段错误，累计失败次数"
+          - scenario: "Account locked"
+            code: "423"
+            message: "账户已锁定，请15分钟后再试"
+            action: "返回剩余锁定时间"
+
+      - id: AC3
+        title: "Role-based access control (RBAC)"
+        scenario:
+          given: "User is authenticated with JWT token"
+          when: "User attempts to access a resource without required role"
+          then:
+            - "Response returns 403 Forbidden"
+            - "Response includes error message '权限不足'"
+
+        business_rules:
+          - id: "BR-3.1"
+            rule: "System defines roles: admin, salesman, engineer, planner, buyer, warehouse_staff, qa, operator, finance, hr"
+          - id: "BR-3.2"
+            rule: "Each role has specific permissions (create/read/update/delete on specific modules)"
+          - id: "BR-3.3"
+            rule: "Admin has all permissions by default"
+
+        error_handling:
+          - scenario: "Token expired"
+            code: "401"
+            message: "登录已过期，请重新登录"
+            action: "返回401，前端跳转登录页"
+          - scenario: "Insufficient permissions"
+            code: "403"
+            message: "权限不足"
+            action: "返回403，提示需要何种权限"
+
+    provides_apis:
+      - "POST /api/auth/register"
+      - "POST /api/auth/login"
+      - "POST /api/auth/refresh"
+      - "GET /api/users/me"
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec: null
+      architecture:
+        files:
+          - "5-components.md#AuthService"
+          - "8-database-schema.md#users"
+
+  - id: "1.2"
+    title: "System Service - Dictionary & Configuration"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Dictionary CRUD operations"
+        scenario:
+          given: "Admin user is authenticated"
+          when: "Admin creates a new dictionary entry via POST /api/dictionaries"
+          then:
+            - "Dictionary entry is created with code, name, value, sort order"
+            - "Response returns 201 with created entry"
+            - "Entry is available for all users"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Dictionary code must be unique within category"
+          - id: "BR-1.2"
+            rule: "Category types include: customer_type, industry, order_status, production_status, quality_status, etc."
+
+        data_validation:
+          - field: "category"
+            type: "string"
+            required: true
+            rules: "Non-empty string, max 50 chars"
+            error_message: "请选择字典分类"
+          - field: "code"
+            type: "string"
+            required: true
+            rules: "Non-empty, alphanumeric with underscore, max 50 chars"
+            error_message: "请输入有效的字典编码"
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 100 chars"
+            error_message: "请输入字典名称"
+
+        error_handling:
+          - scenario: "Duplicate code in same category"
+            code: "409"
+            message: "该分类下编码已存在"
+            action: "返回409，建议使用其他编码"
+
+    provides_apis:
+      - "GET /api/dictionaries"
+      - "POST /api/dictionaries"
+      - "PUT /api/dictionaries/:id"
+      - "DELETE /api/dictionaries/:id"
+      - "GET /api/dictionaries/category/:category"
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "1.3"
+    title: "System Service - Workflow Engine"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Workflow definition and execution"
+        scenario:
+          given: "Admin defines a multi-step approval workflow"
+          when: "User submits a record that triggers the workflow"
+          then:
+            - "Workflow instance is created with initial step"
+            - "Approver is notified (in-app notification)"
+            - "Record status is 'pending_approval'"
+            - "After approval, record status updates and moves to next step"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Workflow steps are sequential; each step must be approved before next"
+          - id: "BR-1.2"
+            rule: "Approver can approve, reject, or return for revision"
+          - id: "BR-1.3"
+            rule: "Rejected records return to submitter with rejection reason"
+
+        data_validation:
+          - field: "workflowDefinitionId"
+            type: "string"
+            required: true
+            rules: "Valid UUID reference to workflow definition"
+            error_message: "请选择工作流"
+          - field: "recordId"
+            type: "string"
+            required: true
+            rules: "Valid UUID reference to business record"
+            error_message: "无效的业务记录"
+
+        error_handling:
+          - scenario: "Workflow definition not found"
+            code: "404"
+            message: "工作流定义不存在"
+            action: "返回404，记录错误日志"
+
+    provides_apis:
+      - "POST /api/workflows/definitions"
+      - "GET /api/workflows/definitions"
+      - "POST /api/workflows/instances"
+      - "GET /api/workflows/instances/:id"
+      - "POST /api/workflows/instances/:id/approve"
+      - "POST /api/workflows/instances/:id/reject"
+    consumes_apis: []
+    dependencies: ["1.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "1.4"
+    title: "API Gateway - Routing & Authentication"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Gateway routes requests to backend services"
+        scenario:
+          given: "Request comes in at /api/*"
+          when: "Gateway receives request with valid JWT token"
+          then:
+            - "Gateway validates JWT token"
+            - "Gateway extracts user info and adds to request header"
+            - "Gateway routes request to appropriate backend service"
+            - "Response is passed back to client"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Routes: /api/auth/* -> auth service, /api/sys/* -> system service, /api/biz/* -> main app"
+          - id: "BR-1.2"
+            rule: "All /api/* routes (except /api/auth/login, /api/auth/register) require valid JWT"
+          - id: "BR-1.3"
+            rule: "Gateway logs all requests with trace ID"
+
+        error_handling:
+          - scenario: "Invalid JWT token"
+            code: "401"
+            message: "未授权"
+            action: "返回401，前端跳转登录"
+          - scenario: "Backend service unavailable"
+            code: "503"
+            message: "服务暂时不可用"
+            action: "返回503，记录错误日志，触发告警"
+
+    provides_apis: []
+    consumes_apis:
+      - "POST /api/auth/login"
+      - "POST /api/auth/register"
+    dependencies: ["1.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "1.5"
+    title: "Database Schema - Core Tables"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Core database tables created"
+        scenario:
+          given: "Database migration runs"
+          when: "DDL scripts execute"
+          then:
+            - "Users table created with indexes"
+            - "Roles and permissions tables created"
+            - "Dictionaries table created with category index"
+            - "Workflow definitions and instances tables created"
+            - "Audit log table created"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "All tables have created_at, updated_at, created_by, updated_by fields"
+          - id: "BR-1.2"
+            rule: "Soft delete is implemented (deleted_at column)"
+          - id: "BR-1.3"
+            rule: "UUID used as primary key for all tables"
+
+        error_handling:
+          - scenario: "Migration fails due to constraint violation"
+            code: "500"
+            message: "数据库迁移失败"
+            action: "返回500，回滚事务，记录错误日志"
+
+    provides_apis: []
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 2: Customer & Quotation Management
+
+**Epic Summary:** 实现客户档案管理、联系人管理、洽谈进展跟踪，以及报价管理全流程：报价单录入、图纸上传、BOM报价预估、审批流程、报价转订单。打通从客户咨询到报价确认的业务闭环。
+
+**Target Repositories:** cnc-erp-system (后端), cnc-erp-web (前端)
+
+```yaml
+epic_id: 2
+title: "Customer & Quotation Management"
+description: |
+  客户管理是业务入口，管理客户档案、联系人、洽谈进展，支持客户保护机制。
+  报价管理承接客户需求，支持上传客户图纸、录入图号、BOM报价预估、多级审批，
+  实现报价单导出和报价转订单的无缝衔接。
+
+stories:
+  - id: "2.1"
+    title: "Customer Management - Customer Profile"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create and manage customer records"
+        scenario:
+          given: "Salesman is authenticated"
+          when: "Salesman creates a new customer via POST /api/customers"
+          then:
+            - "Customer record is created with name, type, industry, credit limit, billing info"
+            - "Customer code is auto-generated (format: CUST-YYYYMMDD-XXXX)"
+            - "Response returns 201 with created customer"
+            - "Customer is assigned to creator (owner)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Customer code must be unique"
+          - id: "BR-1.2"
+            rule: "Customer types: potential, active, inactive"
+          - id: "BR-1.3"
+            rule: "Industry categories come from dictionary"
+          - id: "BR-1.4"
+            rule: "New customer has protection period of 30 days (configurable)"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 100 chars"
+            error_message: "请输入客户名称"
+          - field: "type"
+            type: "string"
+            required: true
+            rules: "Must be valid customer type from dictionary"
+            error_message: "请选择客户类型"
+          - field: "industry"
+            type: "string"
+            required: false
+            rules: "Must be valid industry from dictionary if provided"
+            error_message: "请选择有效的行业分类"
+
+        error_handling:
+          - scenario: "Duplicate customer name"
+            code: "409"
+            message: "该客户名称已存在"
+            action: "返回409，提示是否查询现有客户"
+
+    provides_apis:
+      - "POST /api/customers"
+      - "GET /api/customers"
+      - "GET /api/customers/:id"
+      - "PUT /api/customers/:id"
+      - "DELETE /api/customers/:id"
+    consumes_apis: []
+    dependencies: ["1.1", "1.2"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-2-front-end-spec.md"
+        sections:
+          - "Story 2.1: Customer Profile"
+      architecture: null
+
+  - id: "2.2"
+    title: "Customer Management - Contact Persons"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Manage contact persons for customer"
+        scenario:
+          given: "Customer record exists"
+          when: "User adds a contact person via POST /api/customers/:customerId/contacts"
+          then:
+            - "Contact record is created with name, position, phone, email"
+            - "Only one contact can be marked as primary"
+            - "Response returns 201 with created contact"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Email format must be valid"
+          - id: "BR-1.2"
+            rule: "Phone format: 11 digits for mobile, allow extension"
+          - id: "BR-1.3"
+            rule: "Only one contact can have is_primary=true per customer"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 50 chars"
+            error_message: "请输入联系人姓名"
+          - field: "phone"
+            type: "string"
+            required: false
+            rules: "11 digits or with extension"
+            error_message: "请输入有效的电话号码"
+
+        error_handling:
+          - scenario: "Customer not found"
+            code: "404"
+            message: "客户不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "POST /api/customers/:customerId/contacts"
+      - "GET /api/customers/:customerId/contacts"
+      - "PUT /api/customers/:customerId/contacts/:id"
+      - "DELETE /api/customers/:customerId/contacts/:id"
+    consumes_apis: []
+    dependencies: ["2.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.3"
+    title: "Quotation Management - Quotation Creation"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create quotation with drawing upload"
+        scenario:
+          given: "Customer exists in system"
+          when: "Salesman creates quotation via POST /api/quotations"
+          then:
+            - "Quotation is created with customer, delivery date, validity period"
+            - "Quotation code is auto-generated (format: QUOT-YYYYMMDD-XXXX)"
+            - "Salesman can upload multiple drawing files (PDF, CAD)"
+            - "Each drawing is assigned a drawing number (图号)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Quotation statuses: draft, submitted, approved, rejected, converted"
+          - id: "BR-1.2"
+            rule: "Drawing file types: PDF, DWG, DXF, STEP, STL (max 50MB per file)"
+          - id: "BR-1.3"
+            rule: "Drawing version is tracked (v1, v2, v3...)"
+
+        data_validation:
+          - field: "customerId"
+            type: "uuid"
+            required: true
+            rules: "Valid customer UUID"
+            error_message: "请选择客户"
+          - field: "deliveryDate"
+            type: "date"
+            required: true
+            rules: "Must be future date"
+            error_message: "请选择有效的交期"
+          - field: "drawingNumber"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 50 chars"
+            error_message: "请输入图号"
+
+        error_handling:
+          - scenario: "Customer not found"
+            code: "404"
+            message: "客户不存在"
+            action: "返回404"
+          - scenario: "File too large"
+            code: "413"
+            message: "文件大小超过限制(50MB)"
+            action: "返回413，提示压缩文件"
+
+    provides_apis:
+      - "POST /api/quotations"
+      - "GET /api/quotations"
+      - "GET /api/quotations/:id"
+      - "PUT /api/quotations/:id"
+      - "DELETE /api/quotations/:id"
+      - "POST /api/quotations/:id/drawings"
+      - "GET /api/quotations/:id/drawings"
+    consumes_apis: []
+    dependencies: ["2.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.4"
+    title: "Quotation Management - BOM Estimation"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "BOM cost estimation for quotation"
+        scenario:
+          given: "Quotation exists with drawings"
+          when: "Engineer adds BOM line items via POST /api/quotations/:id/items"
+          then:
+            - "BOM item is created with material, process, surface treatment"
+            - "System calculates material cost based on dimensions and unit price"
+            - "System calculates process cost based on man hours and hourly rate"
+            - "System calculates surface treatment cost"
+            - "Total cost and suggested price are auto-calculated"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Material cost = (length * width * height * density * unit_price) / utilization_rate"
+          - id: "BR-1.2"
+            rule: "Process cost = sum of (man_hours * hourly_rate) for each operation"
+          - id: "BR-1.3"
+            rule: "Surface treatment cost based on surface area and treatment type"
+          - id: "BR-1.4"
+            rule: "Profit margin can be adjusted (default 15%)"
+
+        data_validation:
+          - field: "materialCode"
+            type: "string"
+            required: true
+            rules: "Valid material code from BOM"
+            error_message: "请选择材料"
+          - field: "dimensions"
+            type: "object"
+            required: true
+            rules: "{length, width, height} all positive numbers"
+            error_message: "请输入有效的尺寸"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive integer"
+            error_message: "请输入有效的数量"
+
+        error_handling:
+          - scenario: "Material not found"
+            code: "404"
+            message: "材料不存在"
+            action: "返回404"
+          - scenario: "Invalid dimensions"
+            code: "400"
+            message: "尺寸数据无效"
+            action: "返回400，列出具体错误"
+
+    provides_apis:
+      - "POST /api/quotations/:id/items"
+      - "GET /api/quotations/:id/items"
+      - "PUT /api/quotations/:id/items/:itemId"
+      - "DELETE /api/quotations/:id/items/:itemId"
+      - "GET /api/quotations/:id/summary"
+    consumes_apis: []
+    dependencies: ["2.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.5"
+    title: "Quotation Management - Approval Workflow"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Multi-level quotation approval"
+        scenario:
+          given: "Quotation is in draft status with all items complete"
+          when: "Salesman submits quotation for approval via POST /api/quotations/:id/submit"
+          then:
+            - "Quotation status changes to 'submitted'"
+            - "Workflow instance is created based on amount thresholds"
+            - "Approvers are notified (amount < 10k: direct manager, 10k-50k: manager + director, > 50k: manager + director + VP)"
+            - "Quotation cannot be modified while pending approval"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Approval levels: <=10K (1 level), 10K-50K (2 levels), >50K (3 levels)"
+          - id: "BR-1.2"
+            rule: "Approver can approve, reject, or request revision"
+          - id: "BR-1.3"
+            rule: "Rejected quotation returns to draft status"
+          - id: "BR-1.4"
+            rule: "Approved quotation status changes to 'approved'"
+
+        error_handling:
+          - scenario: "Quotation items incomplete"
+            code: "400"
+            message: "报价明细不完整，无法提交审批"
+            action: "返回400，列出缺失项"
+          - scenario: "No approver configured"
+            code: "500"
+            message: "审批流程未配置"
+            action: "返回500，触发告警"
+
+    provides_apis:
+      - "POST /api/quotations/:id/submit"
+      - "GET /api/quotations/:id/workflow"
+      - "POST /api/quotations/:id/approve"
+      - "POST /api/quotations/:id/reject"
+    consumes_apis: []
+    dependencies: ["2.3", "2.4", "1.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.6"
+    title: "Quotation to Order Conversion"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Convert approved quotation to sales order"
+        scenario:
+          given: "Quotation is in approved status"
+          when: "Salesman clicks 'Convert to Order' via POST /api/quotations/:id/convert"
+          then:
+            - "Sales order is created with all quotation items"
+            - "Customer and contact info are copied"
+            - "Drawing attachments are linked (not duplicated)"
+            - "Quotation status changes to 'converted'"
+            - "Order code is auto-generated (format: SO-YYYYMMDD-XXXX)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Only approved quotations can be converted"
+          - id: "BR-1.2"
+            rule: "Converted quotation cannot be modified or deleted"
+          - id: "BR-1.3"
+            rule: "Original quotation number is preserved in order reference"
+
+        error_handling:
+          - scenario: "Quotation not approved"
+            code: "400"
+            message: "报价单尚未审批通过，无法转订单"
+            action: "返回400"
+          - scenario: "Already converted"
+            code: "409"
+            message: "报价单已转订单"
+            action: "返回409，提示查看已有订单"
+
+    provides_apis:
+      - "POST /api/quotations/:id/convert"
+      - "GET /api/orders/from-quotation/:quotationId"
+    consumes_apis: []
+    dependencies: ["2.5"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 3: Order & Drawing Management
+
+**Epic Summary:** 实现销售订单全生命周期管理和图纸全生命周期管理。订单从录入到审批、变更、关闭的完整流程；图纸从客户上传到工程转化、版本管理、打印随单的全流程追踪。
+
+**Target Repositories:** cnc-erp-system (后端), cnc-erp-web (前端)
+
+```yaml
+epic_id: 3
+title: "Order & Drawing Management"
+description: |
+  销售订单管理接收报价转单或直接录入，管理订单全生命周期：录入、审批、变更、关闭。
+  图纸管理贯穿客户图纸→工程转化→厂内图纸→版本管理→打印随单的全流程，
+  实现图纸与订单、工单的关联追踪。
+
+stories:
+  - id: "3.1"
+    title: "Sales Order - Order Lifecycle"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create sales order from quotation or directly"
+        scenario:
+          given: "Customer exists in system"
+          when: "Salesman creates order via POST /api/orders"
+          then:
+            - "Order is created with customer, items, delivery date"
+            - "Order code is auto-generated (format: SO-YYYYMMDD-XXXX)"
+            - "If from quotation, items and drawings are linked"
+            - "Order status is 'pending_approval'"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Order statuses: draft, pending_approval, approved, in_production, shipped, closed, cancelled"
+          - id: "BR-1.2"
+            rule: "Order amount >= 50K requires multi-level approval"
+          - id: "BR-1.3"
+            rule: "Order can have multiple shipments (partial delivery)"
+
+        data_validation:
+          - field: "customerId"
+            type: "uuid"
+            required: true
+            rules: "Valid customer UUID"
+            error_message: "请选择客户"
+          - field: "deliveryDate"
+            type: "date"
+            required: true
+            rules: "Must be future date"
+            error_message: "请选择交期"
+          - field: "items"
+            type: "array"
+            required: true
+            rules: "At least one item required"
+            error_message: "请添加订单明细"
+
+        error_handling:
+          - scenario: "Customer not found"
+            code: "404"
+            message: "客户不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "POST /api/orders"
+      - "GET /api/orders"
+      - "GET /api/orders/:id"
+      - "PUT /api/orders/:id"
+      - "DELETE /api/orders/:id"
+    consumes_apis: []
+    dependencies: ["2.1", "2.6"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-3-front-end-spec.md"
+        sections:
+          - "Story 3.1: Sales Order Lifecycle"
+      architecture: null
+
+  - id: "3.2"
+    title: "Drawing Lifecycle - From Customer Upload to Shop Floor"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Customer drawing upload and version management"
+        scenario:
+          given: "Order exists with quotation drawings"
+          when: "Engineer reviews drawing via GET /api/drawings/:id"
+          then:
+            - "Drawing metadata is displayed: drawing number, version, upload date, customer"
+            - "Drawing file can be previewed (PDF inline, CAD download)"
+            - "Engineer can add internal annotation/notes"
+            - "Drawing status updates: received -> in_review -> approved -> for_production"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Drawing versions: v1, v2, v3... each version creates new record"
+          - id: "BR-1.2"
+            rule: "Latest version is marked as current"
+          - id: "BR-1.3"
+            rule: "Drawing is linked to order items"
+
+        error_handling:
+          - scenario: "Drawing file corrupted"
+            code: "500"
+            message: "图纸文件损坏"
+            action: "返回500，提示重新上传"
+          - scenario: "Unsupported file format"
+            code: "400"
+            message: "不支持的文件格式"
+            action: "返回400，列出支持的格式"
+
+    provides_apis:
+      - "GET /api/drawings/:id"
+      - "PUT /api/drawings/:id"
+      - "POST /api/drawings/:id/versions"
+      - "GET /api/drawings/:id/versions"
+      - "GET /api/drawings/order/:orderId"
+    consumes_apis: []
+    dependencies: ["3.1", "2.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "3.3"
+    title: "Engineering Drawing Conversion"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Convert customer drawing to internal shop drawing"
+        scenario:
+          given: "Customer drawing is approved"
+          when: "Engineer creates internal drawing via POST /api/drawings/:id/convert"
+          then:
+            - "Internal drawing is created with reference to customer drawing"
+            - "Internal drawing number is auto-generated (format: DWG-INTERNAL-XXXX)"
+            - "Manufacturing specifications are added (tolerances, surface finish, etc.)"
+            - "Bill of materials (BOM) is auto-generated from drawing dimensions"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Internal drawing inherits customer drawing metadata"
+          - id: "BR-1.2"
+            rule: "BOM is auto-created with default material and process"
+          - id: "BR-1.3"
+            rule: "Engineer can modify BOM before saving"
+
+        error_handling:
+          - scenario: "Customer drawing not approved"
+            code: "400"
+            message: "客户图纸尚未审批通过"
+            action: "返回400"
+
+    provides_apis:
+      - "POST /api/drawings/:id/convert"
+      - "GET /api/internal-drawings"
+      - "GET /api/internal-drawings/:id"
+      - "PUT /api/internal-drawings/:id"
+    consumes_apis: []
+    dependencies: ["3.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "3.4"
+    title: "Drawing Print with Work Order"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Print drawing with work order barcodes"
+        scenario:
+          given: "Work order exists with linked drawings"
+          when: "Operator requests to print via GET /api/work-orders/:id/print"
+          then:
+            - "Print preview shows: drawing PDF, work order barcode, quantity, due date"
+            - "Barcode encodes: work order number, item sequence, quantity"
+            - "Print can be triggered to network printer"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Barcode format: Code128, encodes work order number and item index"
+          - id: "BR-1.2"
+            rule: "Print includes: drawing, specifications, quality requirements"
+
+        error_handling:
+          - scenario: "Printer offline"
+            code: "500"
+            message: "打印机离线"
+            action: "返回500，提示检查打印机连接"
+
+    provides_apis:
+      - "GET /api/work-orders/:id/print"
+      - "GET /api/work-orders/:id/print-preview"
+    consumes_apis: []
+    dependencies: ["4.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 4: Production Planning & Scheduling
+
+**Epic Summary:** 实现从订单到工单的生产计划全流程：订单转工单、工序路线定义、机台排程、甘特图可视化、自加工与外协混合模式支持。
+
+**Target Repositories:** cnc-erp-system (后端), cnc-erp-web (前端)
+
+```yaml
+epic_id: 4
+title: "Production Planning & Scheduling"
+description: |
+  生产排产是制造执行的核心环节。将销售订单转化为生产工单，
+  定义工序路线、机台分配、产能评估。支持自加工与委外加工混合排产，
+  甘特图可视化帮助生管员优化生产计划。
+
+stories:
+  - id: "4.1"
+    title: "Order to Work Order Conversion"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Convert order items to work orders"
+        scenario:
+          given: "Approved sales order exists"
+          when: "Planner creates work orders via POST /api/work-orders from order"
+          then:
+            - "Work order is created for each order item (or group of items)"
+            - "Work order code is auto-generated (format: WO-YYYYMMDD-XXXX)"
+            - "Production routes (工序路线) are assigned based on product type"
+            - "Planned start and end dates are calculated based on delivery date and lead time"
+            - "Work order status is 'planned'"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Work order statuses: planned, released, in_progress, paused, completed, cancelled"
+          - id: "BR-1.2"
+            rule: "Lead time calculation considers: material procurement, processing time, queue time"
+          - id: "BR-1.3"
+            rule: "Multiple order items can be combined into single work order (batch production)"
+
+        data_validation:
+          - field: "orderId"
+            type: "uuid"
+            required: true
+            rules: "Valid order UUID"
+            error_message: "请选择订单"
+          - field: "orderItemIds"
+            type: "array"
+            required: true
+            rules: "Valid order item UUIDs"
+            error_message: "请选择订单明细"
+          - field: "plannedStartDate"
+            type: "date"
+            required: true
+            rules: "Date, must be <= delivery_date - lead_time"
+            error_message: "请选择计划开始日期"
+
+        error_handling:
+          - scenario: "Order not approved"
+            code: "400"
+            message: "订单尚未审批通过"
+            action: "返回400"
+          - scenario: "Insufficient BOM"
+            code: "400"
+            message: "物料清单不完整，无法创建工单"
+            action: "返回400，列出缺失的BOM"
+
+    provides_apis:
+      - "POST /api/work-orders"
+      - "GET /api/work-orders"
+      - "GET /api/work-orders/:id"
+      - "PUT /api/work-orders/:id"
+      - "POST /api/work-orders/from-order"
+    consumes_apis: []
+    dependencies: ["3.1"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-4-front-end-spec.md"
+        sections:
+          - "Story 4.1: Order to Work Order"
+          - "Gantt Chart Component"
+      architecture: null
+
+  - id: "4.2"
+    title: "Production Route Definition"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Define and manage production routes"
+        scenario:
+          given: "Product type exists with routing template"
+          when: "Planner configures production route via POST /api/production-routes"
+          then:
+            - "Route is created with sequence of operations"
+            - "Each operation has: operation name, work center, standard hours, description"
+            - "Route can be assigned to multiple products"
+            - "Default route can be set per product type"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Operations are sequential, order matters"
+          - id: "BR-1.2"
+            rule: "Work center references machine group or labor group"
+          - id: "BR-1.3"
+            rule: "Standard hours used for capacity planning and costing"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 100 chars"
+            error_message: "请输入路线名称"
+          - field: "operations"
+            type: "array"
+            required: true
+            rules: "At least one operation required"
+            error_message: "请添加工序"
+
+        error_handling:
+          - scenario: "Duplicate route name"
+            code: "409"
+            message: "该路线名称已存在"
+            action: "返回409"
+
+    provides_apis:
+      - "POST /api/production-routes"
+      - "GET /api/production-routes"
+      - "GET /api/production-routes/:id"
+      - "PUT /api/production-routes/:id"
+      - "DELETE /api/production-routes/:id"
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "4.3"
+    title: "Machine Scheduling and Gantt Chart"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Schedule work orders on machines with Gantt visualization"
+        scenario:
+          given: "Work orders exist with production routes"
+          when: "Planner assigns work orders to machines via PUT /api/work-orders/:id/schedule"
+          then:
+            - "Work order is assigned to specific machine for each operation"
+            - "Scheduled start and end times are calculated based on machine availability"
+            - "Conflicts are detected (machine double-booked)"
+            - "Gantt chart is updated in real-time"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Machine availability considers: shift schedule, maintenance windows, current load"
+          - id: "BR-1.2"
+            rule: "Scheduling algorithm minimizes machine changeover time"
+          - id: "BR-1.3"
+            rule: "Operation sequence must respect route order"
+
+        data_validation:
+          - field: "machineId"
+            type: "uuid"
+            required: true
+            rules: "Valid machine UUID"
+            error_message: "请选择机台"
+          - field: "operationId"
+            type: "uuid"
+            required: true
+            rules: "Valid operation UUID from route"
+            error_message: "请选择工序"
+          - field: "scheduledStart"
+            type: "datetime"
+            required: true
+            rules: "Must be within machine working hours"
+            error_message: "请选择有效的计划时间"
+
+        error_handling:
+          - scenario: "Machine not available"
+            code: "409"
+            message: "机台不可用"
+            action: "返回409，显示可用时间窗口"
+          - scenario: "Conflict with existing schedule"
+            code: "409"
+            message: "与现有排程冲突"
+            action: "返回409，建议其他时间"
+
+    provides_apis:
+      - "PUT /api/work-orders/:id/schedule"
+      - "GET /api/work-orders/scheduling"
+      - "GET /api/gantt"
+      - "GET /api/machines/:id/schedule"
+    consumes_apis: []
+    dependencies: ["4.1", "4.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "4.4"
+    title: "In-house vs Outsourcing Decision"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Mark operations as in-house or outsourced"
+        scenario:
+          given: "Work order is scheduled with operations"
+          when: "Planner marks specific operation as outsourced via PUT /api/work-orders/:id/operations/:opId"
+          then:
+            - "Operation is marked with type: in_house or outsourced"
+            - "If outsourced, supplier field is required"
+            - "Estimated cost is recorded (in-house: labor + overhead, outsourced: processing fee)"
+            - "Operation is excluded from machine scheduling"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Outsourced operations do not consume machine capacity"
+          - id: "BR-1.2"
+            rule: "Outsourcing reasons: capacity shortage, special process not available, cost optimization"
+          - id: "BR-1.3"
+            rule: "Outsourced operation creates subcontract record"
+
+        data_validation:
+          - field: "operationType"
+            type: "string"
+            required: true
+            rules: "in_house or outsourced"
+            error_message: "请选择工序类型"
+          - field: "supplierId"
+            type: "uuid"
+            required: true
+            rules: "Valid supplier UUID when outsourced"
+            error_message: "请选择外协厂商"
+
+        error_handling:
+          - scenario: "Supplier not found"
+            code: "404"
+            message: "外协厂商不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "PUT /api/work-orders/:id/operations/:opId"
+      - "GET /api/work-orders/:id/operations"
+    consumes_apis: []
+    dependencies: ["4.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 5: Workshop Execution (Scan-based)
+
+**Epic Summary:** 实现扫码驱动的车间执行闭环：扫码开工、扫码报工、扫码过站。操作工通过扫码快速完成报工动作，系统实时追踪工单状态，减少手工录入和沟通成本。
+
+**Target Repositories:** cnc-erp-android (移动端扫码功能)
+
+```yaml
+epic_id: 5
+title: "Workshop Execution (Scan-based)"
+description: |
+  扫码驱动的车间执行是本系统的核心差异化能力。
+  操作工通过扫码枪/PDA实现：扫码开工（开始加工）、扫码报工（报告产量）、
+  扫码过站（工序间流转），实现车间数字化管理，实时追踪工单进度。
+
+stories:
+  - id: "5.1"
+    title: "Scan to Start Work (扫码开工)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to start work on operation"
+        scenario:
+          given: "Work order is released and scheduled"
+          when: "Operator scans work order barcode via POST /api/workshop/start"
+          then:
+            - "System identifies work order and current operation"
+            - "Work order operation status changes to 'in_progress'"
+            - "Actual start time is recorded"
+            - "Machine assignment is confirmed"
+            - "Response shows: work order info, operation details, expected quantity"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Can only start work on released work orders"
+          - id: "BR-1.2"
+            rule: "Cannot start same operation twice without completion"
+          - id: "BR-1.3"
+            rule: "Operator must be assigned to the machine or work center"
+
+        data_validation:
+          - field: "barcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode format: WO-YYYYMMDD-XXXX"
+            error_message: "无效的工单条码"
+          - field: "machineId"
+            type: "uuid"
+            required: true
+            rules: "Valid machine UUID"
+            error_message: "请扫描机台条码"
+
+        error_handling:
+          - scenario: "Work order not found"
+            code: "404"
+            message: "工单不存在"
+            action: "返回404，提示核对条码"
+          - scenario: "Work order not released"
+            code: "400"
+            message: "工单未下发"
+            action: "返回400，提示联系生管员"
+          - scenario: "Operation already started"
+            code: "409"
+            message: "该工序已开始加工"
+            action: "返回409，显示当前状态"
+
+    provides_apis:
+      - "POST /api/workshop/start"
+      - "GET /api/workshop/current"
+    consumes_apis: []
+    dependencies: ["4.1", "4.3"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-5-front-end-spec.md"
+        sections:
+          - "Story 5.1: Scan to Start Work"
+          - "Mobile: Scan Start UI"
+      architecture: null
+
+  - id: "5.2"
+    title: "Scan to Report Progress (扫码报工)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to report production quantity"
+        scenario:
+          given: "Work order operation is in progress"
+          when: "Operator reports quantity via POST /api/workshop/report"
+          then:
+            - "Production record is created with quantity and timestamp"
+            - "Accumulated quantity is updated"
+            - "Operator is prompted if quantity exceeds tolerance"
+            - "Status changes to 'completed' if expected quantity reached"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Quantity must be positive integer"
+          - id: "BR-1.2"
+            rule: "Over-production requires confirmation (> 10% of expected)"
+          - id: "BR-1.3"
+            rule: "Each report creates audit trail with operator, time, quantity"
+
+        data_validation:
+          - field: "barcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive integer"
+            error_message: "请输入有效的数量"
+          - field: "quality"
+            type: "string"
+            required: false
+            rules: "ok, rework, scrap"
+            error_message: "请选择质量状态"
+
+        error_handling:
+          - scenario: "Work order not in progress"
+            code: "400"
+            message: "工单未在加工中"
+            action: "返回400，请先扫码开工"
+          - scenario: "Quantity exceeds tolerance"
+            code: "200"
+            message: "报工数量超过预期，请确认"
+            action: "返回确认提示，等待二次确认"
+
+    provides_apis:
+      - "POST /api/workshop/report"
+      - "GET /api/workshop/reports/:workOrderId"
+    consumes_apis: []
+    dependencies: ["5.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "5.3"
+    title: "Scan to Transfer Station (扫码过站)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to transfer to next operation"
+        scenario:
+          given: "Current operation is completed"
+          when: "Operator scans next station barcode via POST /api/workshop/transfer"
+          then:
+            - "Current operation status changes to 'completed'"
+            - "Next operation status changes to 'pending'"
+            - "Transfer record is created with timestamps"
+            - "Material movement is tracked if required"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Can only transfer after reporting expected quantity"
+          - id: "BR-1.2"
+            rule: "Transfer creates material link between operations"
+          - id: "BR-1.3"
+            rule: "Final operation completion triggers work order status update"
+
+        data_validation:
+          - field: "workOrderBarcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "nextStationCode"
+            type: "string"
+            required: true
+            rules: "Valid station code from route"
+            error_message: "请扫描正确的工序条码"
+
+        error_handling:
+          - scenario: "Current operation not completed"
+            code: "400"
+            message: "当前工序尚未完成"
+            action: "返回400，请先完成报工"
+          - scenario: "Invalid station sequence"
+            code: "400"
+            message: "工序顺序错误"
+            action: "返回400，显示正确的下一工序"
+
+    provides_apis:
+      - "POST /api/workshop/transfer"
+      - "GET /api/workshop/transfer-history/:workOrderId"
+    consumes_apis: []
+    dependencies: ["5.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "5.4"
+    title: "Material Issuance (领料管理)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan work order to issue materials"
+        scenario:
+          given: "Work order is scheduled with BOM"
+          when: "Warehouse staff scans work order via POST /api/workshop/material-issue"
+          then:
+            - "BOM materials are retrieved"
+            - "Staff confirms actual issued quantities"
+            - "Inventory is deducted"
+            - "Material issue record is created"
+            - "Label with work order info is printed"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Issued quantity cannot exceed BOM quantity (with tolerance)"
+          - id: "BR-1.2"
+            rule: "Material issue creates cost accumulation on work order"
+          - id: "BR-1.3"
+            rule: "Shortage requires separate purchase request"
+
+        data_validation:
+          - field: "workOrderBarcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "materials"
+            type: "array"
+            required: true
+            rules: "{materialCode, quantity}[]"
+            error_message: "请输入有效的领料信息"
+
+        error_handling:
+          - scenario: "Insufficient inventory"
+            code: "400"
+            message: "库存不足"
+            action: "返回400，显示可发放数量，建议采购"
+
+    provides_apis:
+      - "POST /api/workshop/material-issue"
+      - "GET /api/workshop/material-issue/:workOrderId"
+    consumes_apis: []
+    dependencies: ["4.1", "6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 6: Warehouse & Quality Management
+
+**Epic Summary:** 实现仓储扫码管理（APP扫码出入库、库存查询）和品质管理（来料检验、FA首件确认、三次元检测、质检报告）。打通从原材料入库到成品出货的物流与品质闭环。
+
+**Target Repositories:** cnc-erp-android (移动端仓储扫码功能)
+
+```yaml
+epic_id: 6
+title: "Warehouse & Quality Management"
+description: |
+  仓储管理实现扫码驱动的出入库管理：APP扫码入库、扫码出库、库存查询、条码打印。
+  品质管理实现全流程质检：来料检验（IQC）、过程检验（IPQC）、成品检验（OQC）、
+  FA首件确认、三次元检测、质检报告留痕。
+
+stories:
+  - id: "6.1"
+    title: "Warehouse - Scan-based Stock In"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "APP scan to receive materials into warehouse"
+        scenario:
+          given: "Purchase order or material requisition exists"
+          when: "Warehouse staff scans material barcode via POST /api/warehouse/stock-in"
+          then:
+            - "Material batch is identified"
+            - "Quantity is entered (with unit conversion)"
+            - "Location assignment is recorded (warehouse, zone, bin)"
+            - "Inventory is updated"
+            - "Receipt record is created"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Batch number is auto-generated or scanned"
+          - id: "BR-1.2"
+            rule: "Default location based on material type"
+          - id: "BR-1.3"
+            rule: "Quantity tolerance: ±2% for materials, 0% for critical items"
+
+        data_validation:
+          - field: "materialBarcode"
+            type: "string"
+            required: true
+            rules: "Valid material barcode"
+            error_message: "无效的物料条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive number"
+            error_message: "请输入有效的数量"
+          - field: "locationCode"
+            type: "string"
+            required: true
+            rules: "Valid location code"
+            error_message: "请扫描库位条码"
+
+        error_handling:
+          - scenario: "Material not registered"
+            code: "404"
+            message: "物料不存在"
+            action: "返回404，提示先注册物料"
+          - scenario: "Quantity exceeds PO"
+            code: "400"
+            message: "数量超过采购订单"
+            action: "返回400，显示PO数量"
+
+    provides_apis:
+      - "POST /api/warehouse/stock-in"
+      - "GET /api/warehouse/stock-in/:id"
+      - "GET /api/warehouse/receipts"
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec:
+        file: "epic-6-front-end-spec.md"
+        sections:
+          - "Story 6.1: Scan-based Stock In"
+          - "Mobile: Warehouse UI"
+      architecture: null
+
+  - id: "6.2"
+    title: "Warehouse - Scan-based Stock Out"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "APP scan to issue materials from warehouse"
+        scenario:
+          given: "Material issue request exists (work order or production)"
+          when: "Warehouse staff scans material barcode via POST /api/warehouse/stock-out"
+          then:
+            - "Material batch is identified"
+            - "Quantity is entered"
+            - "Inventory is deducted"
+            - "Issue record is created with reference to work order"
+            - "FIFO logic is applied for batch selection"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "FIFO (First In First Out) for batch selection"
+          - id: "BR-1.2"
+            rule: "Cannot issue more than available quantity"
+          - id: "BR-1.3"
+            rule: "Issue creates cost link to work order or cost center"
+
+        data_validation:
+          - field: "materialBarcode"
+            type: "string"
+            required: true
+            rules: "Valid material barcode"
+            error_message: "无效的物料条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive number, <= available"
+            error_message: "请输入有效的数量"
+
+        error_handling:
+          - scenario: "Insufficient stock"
+            code: "400"
+            message: "库存不足"
+            action: "返回400，显示可用数量"
+          - scenario: "Material in quality hold"
+            code: "400"
+            message: "物料在质检中，不可发放"
+            action: "返回400，等待质检完成"
+
+    provides_apis:
+      - "POST /api/warehouse/stock-out"
+      - "GET /api/warehouse/stock-out/:id"
+      - "GET /api/warehouse/issues"
+    consumes_apis: []
+    dependencies: ["6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.3"
+    title: "Warehouse - Inventory Query"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Query inventory by scan or search"
+        scenario:
+          given: "User has warehouse access"
+          when: "User scans material barcode via GET /api/warehouse/inventory/:materialCode"
+          then:
+            - "Current stock quantity is returned"
+            - "Batch details (batch number, location, received date) are listed"
+            - "Reserved quantity (for work orders) is shown"
+            - "Available quantity = stock - reserved"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Inventory is real-time (no delay)"
+          - id: "BR-1.2"
+            rule: "Reserved quantity locked for confirmed work orders"
+
+        error_handling:
+          - scenario: "Material not found"
+            code: "404"
+            message: "物料不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "GET /api/warehouse/inventory/:materialCode"
+      - "GET /api/warehouse/inventory"
+      - "GET /api/warehouse/inventory/location/:locationCode"
+    consumes_apis: []
+    dependencies: ["6.1", "6.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.4"
+    title: "Quality - Incoming Inspection (IQC)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record incoming material inspection results"
+        scenario:
+          given: "Material is received and pending inspection"
+          when: "QA inspector creates inspection via POST /api/quality/iqc"
+          then:
+            - "Inspection record is created with batch, sample size, inspection items"
+            - "Inspection items follow predefined checklist (dimension, appearance, function)"
+            - "Results (pass/fail) are recorded per item"
+            - "Final verdict: pass, fail, or conditional pass"
+            - "If fail, material is quarantined or returned"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "AQL (Acceptable Quality Level) sampling plan based on batch size"
+          - id: "BR-1.2"
+            rule: "Critical items: zero tolerance (any fail = batch fail)"
+          - id: "BR-1.3"
+            rule: "Inspection records are retained for traceability"
+
+        data_validation:
+          - field: "batchId"
+            type: "uuid"
+            required: true
+            rules: "Valid batch UUID"
+            error_message: "请扫描批次条码"
+          - field: "inspectionItems"
+            type: "array"
+            required: true
+            rules: "{itemCode, result, remarks}[]"
+            error_message: "请完成所有检验项"
+
+        error_handling:
+          - scenario: "Batch not found"
+            code: "404"
+            message: "批次不存在"
+            action: "返回404"
+          - scenario: "Inspection already done"
+            code: "409"
+            message: "该批次已完成检验"
+            action: "返回409，显示检验结果"
+
+    provides_apis:
+      - "POST /api/quality/iqc"
+      - "GET /api/quality/iqc/:id"
+      - "GET /api/quality/iqc/batch/:batchId"
+    consumes_apis: []
+    dependencies: ["6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.5"
+    title: "Quality - First Article Inspection (FAI/FA)"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record first article inspection for new orders"
+        scenario:
+          given: "Work order is completed (first piece)"
+          when: "QA inspector records FAI via POST /api/quality/fai"
+          then:
+            - "FAI record is created linked to work order"
+            - "Inspection dimensions are compared against drawing specifications"
+            - "CMM (Coordinate Measuring Machine) data can be imported"
+            - "Results: pass, fail, or rework required"
+            - "Pass triggers production release"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "FAI is required for new parts, engineering changes, or supplier changes"
+          - id: "BR-1.2"
+            rule: "Dimension tolerance follows drawing specifications"
+          - id: "BR-1.3"
+            rule: "CMM data import supports CSV format"
+
+        data_validation:
+          - field: "workOrderId"
+            type: "uuid"
+            required: true
+            rules: "Valid work order UUID"
+            error_message: "请扫描工单条码"
+          - field: "measurements"
+            type: "array"
+            required: true
+            rules: "{dimensionCode, nominal, actual, tolerance}[]"
+            error_message: "请输入测量数据"
+
+        error_handling:
+          - scenario: "Work order not completed"
+            code: "400"
+            message: "工单尚未完成首件"
+            action: "返回400"
+          - scenario: "Dimension out of tolerance"
+            code: "200"
+            message: "尺寸超差"
+            action: "返回警告，记录实际值，要求确认"
+
+    provides_apis:
+      - "POST /api/quality/fai"
+      - "GET /api/quality/fai/:id"
+      - "GET /api/quality/fai/work-order/:workOrderId"
+      - "POST /api/quality/fai/:id/cmm-import"
+    consumes_apis: []
+    dependencies: ["5.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.6"
+    title: "Quality - CMM (Three-dimensional Measurement) Inspection"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P1
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record CMM inspection with import capability"
+        scenario:
+          given: "Part is ready for CMM measurement"
+          when: "QA inspector imports CMM data via POST /api/quality/cmm"
+          then:
+            - "CMM record is created with measurement points"
+            - "Points are compared against nominal values and tolerances"
+            - "Overall result: pass or fail based on all points"
+            - "Report is generated in PDF format"
+            - "Report is linked to work order and drawing"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "CMM data format: CSV with columns (point_id, x, y, z, nominal_x, nominal_y, nominal_z)"
+          - id: "BR-1.2"
+            rule: "Tolerance interpretation: +/- value or GD&T symbols"
+          - id: "BR-1.3"
+            rule: "Report includes: part info, measurement date, operator, results summary"
+
+        data_validation:
+          - field: "workOrderId"
+            type: "uuid"
+            required: true
+            rules: "Valid work order UUID"
+            error_message: "请输入工单号"
+          - field: "csvData"
+            type: "file"
+            required: true
+            rules: "Valid CSV format"
+            error_message: "请上传有效的CMM数据文件"
+
+        error_handling:
+          - scenario: "Invalid CSV format"
+            code: "400"
+            message: "CSV格式不正确"
+            action: "返回400，显示正确格式示例"
+          - scenario: "Missing required columns"
+            code: "400"
+            message: "缺少必需列"
+            action: "返回400，列出必需列"
+
+    provides_apis:
+      - "POST /api/quality/cmm"
+      - "GET /api/quality/cmm/:id"
+      - "GET /api/quality/cmm/:id/report"
+      - "GET /api/quality/cmm/work-order/:workOrderId"
+    consumes_apis: []
+    dependencies: ["6.5"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 7: Outsourcing & Supplier Management
+
+**Epic Summary:** 实现委外加工全流程管理：外协厂商管理、委外下单、委外进度跟踪、委外对账。打通自加工与委外加工的混合生产模式。
+
+**Target Repositories:** cnc-erp-system (后端), cnc-erp-web (前端)
+
+```yaml
+epic_id: 7
+title: "Outsourcing & Supplier Management"
+description: |
+  委外加工是CNC行业的常见模式。本Epic管理外协厂商的档案、合作记录、
+  委外订单下发、进度跟踪（送货预测、回货追踪）、委外对账付款。
+  与自加工无缝衔接，统一在工单视图中追踪。
+
+stories:
+  - id: "7.1"
+    title: "Supplier Management - Basic Info"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Manage outsourcing supplier profiles"
+        scenario:
+          given: "System admin is authenticated"
+          when: "Admin creates supplier via POST /api/suppliers"
+          then:
+            - "Supplier record is created with name, contact, capabilities, ratings"
+            - "Supplier code is auto-generated (format: SUPP-XXXX)"
+            - "Supplier categories (oxidation, plating, heat treatment, inspection, etc.) are tagged"
+            - "Supplier status: active, suspended, blacklisted"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Supplier name must be unique"
+          - id: "BR-1.2"
+            rule: "Supplier can have multiple capabilities"
+          - id: "BR-1.3"
+            rule: "Blacklisted supplier cannot receive new orders"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 100 chars"
+            error_message: "请输入厂商名称"
+          - field: "capabilities"
+            type: "array"
+            required: true
+            rules: "At least one capability"
+            error_message: "请选择加工能力"
+
+        error_handling:
+          - scenario: "Duplicate supplier name"
+            code: "409"
+            message: "该厂商名称已存在"
+            action: "返回409"
+
+    provides_apis:
+      - "POST /api/suppliers"
+      - "GET /api/suppliers"
+      - "GET /api/suppliers/:id"
+      - "PUT /api/suppliers/:id"
+      - "DELETE /api/suppliers/:id"
+    consumes_apis: []
+    dependencies: ["1.1"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-7-front-end-spec.md"
+        sections:
+          - "Story 7.1: Supplier Management"
+      architecture: null
+
+  - id: "7.2"
+    title: "Outsourcing Order Creation"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create outsourcing order from work order operation"
+        scenario:
+          given: "Work order has operation marked as outsourced"
+          when: "Planner creates outsourcing order via POST /api/outsourcing-orders"
+          then:
+            - "Outsourcing order is created with supplier, operation details"
+            - "Outsourcing order code is auto-generated (format: OS-YYYYMMDD-XXXX)"
+            - "Reference to work order operation is preserved"
+            - "Estimated delivery date is set"
+            - "Order is sent to supplier (email/portal notification)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Outsourcing order amount based on quoted price or standard rate"
+          - id: "BR-1.2"
+            rule: "Supplier must have capability matching operation"
+          - id: "BR-1.3"
+            rule: "Outsourcing order links to parent work order"
+
+        data_validation:
+          - field: "supplierId"
+            type: "uuid"
+            required: true
+            rules: "Valid supplier UUID"
+            error_message: "请选择外协厂商"
+          - field: "workOrderOperationId"
+            type: "uuid"
+            required: true
+            rules: "Valid work order operation UUID"
+            error_message: "请选择委外工序"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive number"
+            error_message: "请输入数量"
+          - field: "estimatedDeliveryDate"
+            type: "date"
+            required: true
+            rules: "Future date"
+            error_message: "请选择预计交期"
+
+        error_handling:
+          - scenario: "Supplier lacks capability"
+            code: "400"
+            message: "该厂商不具备加工能力"
+            action: "返回400，显示匹配的厂商"
+          - scenario: "Operation not marked as outsourced"
+            code: "400"
+            message: "该工序未标记为外协"
+            action: "返回400，先标记外协再下单"
+
+    provides_apis:
+      - "POST /api/outsourcing-orders"
+      - "GET /api/outsourcing-orders"
+      - "GET /api/outsourcing-orders/:id"
+      - "PUT /api/outsourcing-orders/:id"
+    consumes_apis: []
+    dependencies: ["4.4", "7.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "7.3"
+    title: "Outsourcing Progress Tracking"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Track outsourcing order progress and delivery"
+        scenario:
+          given: "Outsourcing order is confirmed"
+          when: "Supplier updates progress or planner records delivery via PUT /api/outsourcing-orders/:id/progress"
+          then:
+            - "Progress status is updated: sent, in_progress, shipped, delivered"
+            - "Estimated delivery is updated if supplier provides new date"
+            - "Delivery note number is recorded on delivery"
+            - "Quality status (pending_inspection, passed, failed) is recorded"
+            - "Parent work order operation status is updated"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Status transitions: sent -> in_progress -> shipped -> delivered"
+          - id: "BR-1.2"
+            rule: "Delivery triggers quality inspection request"
+          - id: "BR-1.3"
+            rule: "Late delivery automatically creates alert"
+
+        data_validation:
+          - field: "status"
+            type: "string"
+            required: true
+            rules: "Valid status value"
+            error_message: "请选择状态"
+          - field: "deliveryNoteNumber"
+            type: "string"
+            required: false
+            rules: "Max 50 chars if provided"
+            error_message: "请输入送货单号"
+
+        error_handling:
+          - scenario: "Invalid status transition"
+            code: "400"
+            message: "状态转换无效"
+            action: "返回400，显示有效转换"
+
+    provides_apis:
+      - "PUT /api/outsourcing-orders/:id/progress"
+      - "GET /api/outsourcing-orders/:id/progress-history"
+      - "GET /api/outsourcing-orders/pending"
+    consumes_apis: []
+    dependencies: ["7.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "7.4"
+    title: "Outsourcing Reconciliation (对账)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Monthly reconciliation with suppliers"
+        scenario:
+          given: "Outsourcing orders are completed"
+          when: "Planner creates reconciliation via POST /api/outsourcing-orders/reconciliation"
+          then:
+            - "All delivered orders for the period are grouped by supplier"
+            - "Total amount is calculated per supplier"
+            - "Reconciliation document is generated"
+            - "Payment request can be initiated"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Reconciliation period: monthly (configurable)"
+          - id: "BR-1.2"
+            rule: "Only delivered and quality-passed orders are included"
+          - id: "BR-1.3"
+            rule: "Reconciliation status: pending, confirmed, paid"
+
+        error_handling:
+          - scenario: "No completed orders"
+            code: "400"
+            message: "该期间无已完成订单"
+            action: "返回400"
+
+    provides_apis:
+      - "POST /api/outsourcing-orders/reconciliation"
+      - "GET /api/outsourcing-orders/reconciliation/:id"
+      - "GET /api/outsourcing-orders/reconciliation/supplier/:supplierId"
+    consumes_apis: []
+    dependencies: ["7.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## Epic 8: Reporting & Dashboard
+
+**Epic Summary:** 实现产值、交付、逾期、库存等关键业务指标的实时看板，以及财务报表。帮助管理者快速掌握业务状态，做出数据驱动的决策。
+
+**Target Repositories:** cnc-erp-web (前端看板) + cnc-erp-system (后端报表服务)
+
+```yaml
+epic_id: 8
+title: "Reporting & Dashboard"
+description: |
+  数据驱动决策是现代企业管理的核心。本Epic提供产值、交付、逾期、库存等关键指标的
+  实时看板，帮助管理者快速掌握业务状态。报表服务独立部署，接收业务数据推送，
+  预计算汇总指标，保证查询性能。
+
+stories:
+  - id: "8.1"
+    title: "Production Value Dashboard (产值看板)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Display production value metrics in real-time"
+        scenario:
+          given: "Production data is recorded"
+          when: "Manager views production value dashboard via GET /api/reports/production-value"
+          then:
+            - "Today's production value is displayed"
+            - "This week's production value is displayed"
+            - "This month's production value is displayed"
+            - "Year-to-date production value is displayed"
+            - "Trend chart shows daily/weekly/monthly values"
+            - "Breakdown by product category or work order type"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Production value = sum of (completed quantity * unit price) for finished work orders"
+          - id: "BR-1.2"
+            rule: "Values exclude cancelled or rejected orders"
+          - id: "BR-1.3"
+            rule: "Data refreshes every 5 minutes"
+
+        error_handling:
+          - scenario: "No production data"
+            code: "200"
+            message: "暂无产值数据"
+            action: "返回空数据提示"
+
+    provides_apis:
+      - "GET /api/reports/production-value"
+      - "GET /api/reports/production-value/trend"
+    consumes_apis: []
+    dependencies: ["5.2", "5.3"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-8-front-end-spec.md"
+        sections:
+          - "Story 8.1: Production Value Dashboard"
+          - "Chart Components"
+      architecture: null
+
+  - id: "8.2"
+    title: "Delivery Performance Dashboard (交付看板)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Display delivery performance metrics"
+        scenario:
+          given: "Orders and work orders exist"
+          when: "Manager views delivery dashboard via GET /api/reports/delivery"
+          then:
+            - "On-time delivery rate is calculated and displayed"
+            - "Orders due this week are listed with status"
+            - "Orders overdue are highlighted in red"
+            - "Orders completed ahead of schedule are highlighted in green"
+            - "Trend chart shows weekly on-time rate"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "On-time = actual_delivery_date <= promised_delivery_date"
+          - id: "BR-1.2"
+            rule: "On-time rate = on_time_orders / total_delivered_orders * 100%"
+          - id: "BR-1.3"
+            rule: "Target on-time rate: 90%"
+
+        error_handling:
+          - scenario: "No delivery data"
+            code: "200"
+            message: "暂无交付数据"
+            action: "返回空数据提示"
+
+    provides_apis:
+      - "GET /api/reports/delivery"
+      - "GET /api/reports/delivery/overdue"
+      - "GET /api/reports/delivery/trend"
+    consumes_apis: []
+    dependencies: ["5.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "8.3"
+    title: "Inventory Dashboard (库存看板)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Display inventory metrics and alerts"
+        scenario:
+          given: "Inventory transactions are recorded"
+          when: "Manager views inventory dashboard via GET /api/reports/inventory"
+          then:
+            - "Total inventory value is displayed"
+            - "Stock levels by category (raw material, WIP, finished goods)"
+            - "Low stock alerts for items below safety stock"
+            - "Slow-moving items (no movement in 30+ days)"
+            - "Inventory turnover rate"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Inventory value = sum(item.quantity * item.unit_cost)"
+          - id: "BR-1.2"
+            rule: "Low stock threshold: configurable per item (default 10 units)"
+          - id: "BR-1.3"
+            rule: "Slow-moving: no transactions in past 30 days"
+
+        error_handling:
+          - scenario: "No inventory data"
+            code: "200"
+            message: "暂无库存数据"
+            action: "返回空数据提示"
+
+    provides_apis:
+      - "GET /api/reports/inventory"
+      - "GET /api/reports/inventory/alerts"
+      - "GET /api/reports/inventory/turnover"
+    consumes_apis: []
+    dependencies: ["6.1", "6.2", "6.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "8.4"
+    title: "Financial Reports (财务报表)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P1
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Generate financial summary reports"
+        scenario:
+          given: "Sales orders, production costs, and outsourcing expenses are recorded"
+          when: "Finance manager generates report via GET /api/reports/financial"
+          then:
+            - "Revenue report: sales by period, customer, product category"
+            - "Cost report: material cost, labor cost, outsourcing cost, overhead"
+            - "Profit margin analysis by product or order"
+            - "Accounts receivable aging report"
+            - "Export to Excel format is supported"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Revenue recognized on invoice date"
+          - id: "BR-1.2"
+            rule: "Cost recognized on work order completion"
+          - id: "BR-1.3"
+            rule: "Profit = Revenue - Material Cost - Process Cost - Outsourcing Cost - Overhead"
+
+        error_handling:
+          - scenario: "Incomplete data for period"
+            code: "200"
+            message: "该期间数据不完整"
+            action: "返回提示，显示已知数据范围"
+
+    provides_apis:
+      - "GET /api/reports/financial/revenue"
+      - "GET /api/reports/financial/cost"
+      - "GET /api/reports/financial/profit"
+      - "GET /api/reports/financial/ar-aging"
+    consumes_apis: []
+    dependencies: ["3.1", "5.4", "7.4"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+```
+
+---
+
+## 7. Checklist Results Report
+
+> 在运行检查清单并生成报告之前，请确认是否要继续生成完整的PRD文档？
+
+---
+
+## 8. Next Steps
+
+### 8.1 UX Expert Prompt
+
+启动UX专家进行前端规格设计，基于本PRD的UI Goals和Epic stories。
+
+### 8.2 Architect Prompt
+
+启动架构师进行系统架构设计，基于本PRD的技术假设和Epic stories。
+
+---
+
+*文档生成完成*
