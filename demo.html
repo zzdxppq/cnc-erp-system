@@ -236,11 +236,6 @@ textarea.form-control{resize:vertical;min-height:100px}
         <div class="name">生产主管</div>
         <div class="desc">生产排产、工单跟踪</div>
       </div>
-      <div class="role-item" onclick="selectRole('operator')">
-        <div class="icon">🔧</div>
-        <div class="name">车间操作工</div>
-        <div class="desc">扫码开工、报工</div>
-      </div>
       <div class="role-item" onclick="selectRole('warehouse')">
         <div class="icon">📦</div>
         <div class="name">仓管员</div>
@@ -285,12 +280,12 @@ textarea.form-control{resize:vertical;min-height:100px}
       <span>CNC ERP</span>
     </div>
     <nav class="header-nav" id="headerNav">
-      <a href="#" class="active" onclick="showPage('dashboard',this)" data-roles="admin,manager,operator,warehouse,quality,finance">首页看板</a>
+      <a href="#" class="active" onclick="showPage('dashboard',this)" data-roles="admin,manager,warehouse,quality,finance">首页看板</a>
       <a href="#" onclick="showPage('customer',this)" data-roles="admin,manager">客户管理</a>
       <a href="#" onclick="showPage('quotation',this)" data-roles="admin,manager">报价管理</a>
       <a href="#" onclick="showPage('order',this)" data-roles="admin,manager">订单管理</a>
       <a href="#" onclick="showPage('production',this)" data-roles="admin,manager">生产排产</a>
-      <a href="#" onclick="showPage('workshop',this)" data-roles="admin,manager,operator">车间执行</a>
+      <a href="#" onclick="showPage('workshop',this)" data-roles="admin,manager">车间执行</a>
       <a href="#" onclick="showPage('warehouse',this)" data-roles="admin,warehouse">仓储管理</a>
       <a href="#" onclick="showPage('quality',this)" data-roles="admin,quality">品质管理</a>
       <a href="#" onclick="showPage('outsourcing',this)" data-roles="admin,manager">委外管理</a>
@@ -1330,9 +1325,9 @@ textarea.form-control{resize:vertical;min-height:100px}
 
 <script>
 var currentRole='';
-var roleNames={admin:'管理员',manager:'生产主管',operator:'车间操作工',warehouse:'仓管员',quality:'品检员',finance:'财务'};
-var roleTags={admin:'badge-purple',manager:'badge-warning',operator:'badge-info',warehouse:'badge-success',quality:'badge-purple',finance:'badge-info'};
-var roleAvatars={admin:'管',manager:'生',operator:'操',warehouse:'仓',quality:'检',finance:'财'};
+var roleNames={admin:'管理员',manager:'生产主管',warehouse:'仓管员',quality:'品检员',finance:'财务'};
+var roleTags={admin:'badge-purple',manager:'badge-warning',warehouse:'badge-success',quality:'badge-purple',finance:'badge-info'};
+var roleAvatars={admin:'管',manager:'生',warehouse:'仓',quality:'检',finance:'财'};
 
 function selectRole(role){
   currentRole=role;

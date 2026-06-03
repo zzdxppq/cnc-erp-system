@@ -772,12 +772,14 @@ var navConfig={
   warehouse:[
     {id:'warehouse-home',icon:'🏠',label:'首页'},
     {id:'warehouse-stock-query',icon:'🔍',label:'查询'},
-    {id:'warehouse-record',icon:'📋',label:'记录'}
+    {id:'warehouse-stock-in',icon:'📥',label:'入库'},
+    {id:'warehouse-stock-out',icon:'📤',label:'出库'}
   ],
   quality:[
     {id:'quality-home',icon:'🏠',label:'首页'},
     {id:'quality-iqc',icon:'📥',label:'IQC'},
-    {id:'quality-report',icon:'📊',label:'报告'}
+    {id:'quality-fai',icon:'🎯',label:'FAI'},
+    {id:'quality-cmm',icon:'📐',label:'CMM'}
   ]
 };
 
@@ -832,13 +834,7 @@ function showPage(pageId){
 }
 
 function showSubPage(pageId){
-  document.querySelectorAll('#main .page').forEach(function(p){p.classList.remove('show')});
-  var page=document.getElementById('page-'+pageId);
-  if(page){
-    page.classList.add('show');
-    var header=page.querySelector('.header');
-    if(header)header.classList.add('show');
-  }
+  showPage(pageId);
 }
 
 function openScan(){
