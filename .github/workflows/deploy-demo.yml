@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - 'demo.html'
+      - 'demo-mobile.html'
   workflow_dispatch:
 
 permissions:
@@ -24,10 +25,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Upload demo.html
+      - name: Upload demo files
         uses: actions/upload-pages-artifact@v3
         with:
-          path: demo.html
+          path: |
+            demo.html
+            demo-mobile.html
 
   deploy:
     environment:
