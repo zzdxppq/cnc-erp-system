@@ -415,8 +415,8 @@ textarea.form-control{resize:vertical;min-height:100px}
           <table class="table">
             <thead><tr><th><input type="checkbox" class="checkbox"></th><th>客户编号</th><th>客户名称</th><th>联系人</th><th>电话</th><th>行业</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C001</td><td>深圳市XX机械有限公司</td><td>张经理</td><td>138****1234</td><td>机械设备</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
-              <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C002</td><td>东莞市YY精密电子有限公司</td><td>李总</td><td>139****5678</td><td>电子制造</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
+              <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C001</td><td>深圳市XX机械有限公司</td><td>张经理</td><td>138****1234</td><td>机械设备</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('customerDetailModal')">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
+              <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C002</td><td>东莞市YY精密电子有限公司</td><td>李总</td><td>139****5678</td><td>电子制造</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('customerDetailModal')">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
               <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C003</td><td>佛山市ZZ金属制品厂</td><td>王工</td><td>137****9012</td><td>金属加工</td><td><span class="badge badge-warning">待跟进</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
               <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C004</td><td>惠州市AA五金制品有限公司</td><td>赵总</td><td>136****7890</td><td>五金制品</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
               <tr><td><input type="checkbox" class="checkbox"></td><td class="mono">C005</td><td>中山市BB模具制造有限公司</td><td>孙经理</td><td>135****2345</td><td>模具制造</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">编辑</button></td></tr>
@@ -453,7 +453,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 新建报价单</button>
+          <button class="btn btn-primary" onclick="openModal('quotationModal')">+ 新建报价单</button>
         </div>
       </div>
 
@@ -462,7 +462,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           <table class="table">
             <thead><tr><th>报价单号</th><th>客户</th><th>产品</th><th>金额</th><th>税率</th><th>日期</th><th>有效期</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr><td class="mono">Q2024060301</td><td>深圳市XX机械</td><td>精密轴套 #A202</td><td style="color:var(--success);font-weight:600">¥15,800</td><td>13%</td><td>2026-06-03</td><td>2026-07-03</td><td><span class="badge badge-warning">待审批</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-primary">转订单</button></td></tr>
+              <tr><td class="mono">Q2024060301</td><td>深圳市XX机械</td><td>精密轴套 #A202</td><td style="color:var(--success);font-weight:600">¥15,800</td><td>13%</td><td>2026-06-03</td><td>2026-07-03</td><td><span class="badge badge-warning">待审批</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('quotationDetailModal')">查看</button><button class="btn btn-sm btn-primary">转订单</button></td></tr>
               <tr><td class="mono">Q2024060201</td><td>东莞市YY精密电子</td><td>法兰盘 #B105</td><td style="color:var(--success);font-weight:600">¥28,500</td><td>13%</td><td>2026-06-02</td><td>2026-07-02</td><td><span class="badge badge-success">已通过</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">已转</button></td></tr>
               <tr><td class="mono">Q2024060101</td><td>佛山市ZZ金属制品</td><td>齿轮箱体 #C308</td><td style="color:var(--success);font-weight:600">¥12,300</td><td>13%</td><td>2026-06-01</td><td>2026-06-30</td><td><span class="badge badge-error">已拒绝</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">复制</button></td></tr>
               <tr><td class="mono">Q2024052801</td><td>惠州市AA五金</td><td>连接器 #D401</td><td style="color:var(--success);font-weight:600">¥8,600</td><td>13%</td><td>2026-05-28</td><td>2026-06-28</td><td><span class="badge badge-success">已通过</span></td><td class="actions"><button class="btn btn-sm btn-secondary">查看</button><button class="btn btn-sm btn-secondary">已转</button></td></tr>
@@ -503,7 +503,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           <input type="date" class="form-control" style="width:150px">
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 新建订单</button>
+          <button class="btn btn-primary" onclick="openModal('orderModal')">+ 新建订单</button>
         </div>
       </div>
 
@@ -512,8 +512,8 @@ textarea.form-control{resize:vertical;min-height:100px}
           <table class="table">
             <thead><tr><th>订单号</th><th>客户</th><th>产品</th><th>数量</th><th>单价</th><th>金额</th><th>交期</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr><td class="mono">SO2024060301</td><td>深圳市XX机械</td><td>精密轴套 #A202</td><td>100件</td><td>¥158</td><td style="color:var(--success);font-weight:600">¥15,800</td><td>2026-06-15</td><td><span class="badge badge-info">生产中</span></td><td class="actions"><button class="btn btn-sm btn-secondary">详情</button><button class="btn btn-sm btn-secondary">跟踪</button></td></tr>
-              <tr><td class="mono">SO2024060201</td><td>东莞市YY精密电子</td><td>法兰盘 #B105</td><td>50件</td><td>¥170</td><td style="color:var(--success);font-weight:600">¥8,500</td><td>2026-06-10</td><td><span class="badge badge-warning">已发货</span></td><td class="actions"><button class="btn btn-sm btn-secondary">详情</button><button class="btn btn-sm btn-secondary">跟踪</button></td></tr>
+              <tr><td class="mono">SO2024060301</td><td>深圳市XX机械</td><td>精密轴套 #A202</td><td>100件</td><td>¥158</td><td style="color:var(--success);font-weight:600">¥15,800</td><td>2026-06-15</td><td><span class="badge badge-info">生产中</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('orderDetailModal')">详情</button><button class="btn btn-sm btn-secondary">跟踪</button></td></tr>
+              <tr><td class="mono">SO2024060201</td><td>东莞市YY精密电子</td><td>法兰盘 #B105</td><td>50件</td><td>¥170</td><td style="color:var(--success);font-weight:600">¥8,500</td><td>2026-06-10</td><td><span class="badge badge-warning">已发货</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('orderDetailModal')">详情</button><button class="btn btn-sm btn-secondary">跟踪</button></td></tr>
               <tr><td class="mono">SO2024060101</td><td>佛山市ZZ金属制品</td><td>齿轮箱体 #C308</td><td>30件</td><td>¥410</td><td style="color:var(--success);font-weight:600">¥12,300</td><td>2026-06-05</td><td><span class="badge badge-success">已完成</span></td><td class="actions"><button class="btn btn-sm btn-secondary">详情</button><button class="btn btn-sm btn-secondary">对账</button></td></tr>
               <tr><td class="mono">SO2024052801</td><td>惠州市AA五金</td><td>连接器 #D401</td><td>200件</td><td>¥43</td><td style="color:var(--success);font-weight:600">¥8,600</td><td>2026-05-30</td><td><span class="badge badge-success">已完成</span></td><td class="actions"><button class="btn btn-sm btn-secondary">详情</button><button class="btn btn-sm btn-secondary">对账</button></td></tr>
             </tbody>
@@ -548,7 +548,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 创建工单</button>
+          <button class="btn btn-primary" onclick="openModal('workOrderModal')">+ 创建工单</button>
         </div>
       </div>
 
@@ -617,7 +617,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-secondary">📥 入库</button>
+          <button class="btn btn-secondary" onclick="openModal('warehouseInModal')">📥 入库</button>
           <button class="btn btn-secondary">📤 出库</button>
           <button class="btn btn-secondary">📊 盘点</button>
         </div>
@@ -626,13 +626,13 @@ textarea.form-control{resize:vertical;min-height:100px}
       <div class="card">
         <div class="card-body" style="padding:0">
           <table class="table">
-            <thead><tr><th>物料编码</th><th>物料名称</th><th>规格</th><th>仓库</th><th>库存</th><th>单位</th><th>单价</th><th>库存值</th><th>安全库存</th><th>状态</th></tr></thead>
+            <thead><tr><th>物料编码</th><th>物料名称</th><th>规格</th><th>仓库</th><th>库存</th><th>单位</th><th>单价</th><th>库存值</th><th>安全库存</th><th>状态</th><th>操作</th></tr></thead>
             <tbody>
-              <tr><td class="mono">MAT-001</td><td>45# 圆钢</td><td>Φ20mm</td><td>原料仓</td><td style="font-weight:600">500</td><td>kg</td><td>¥8.5</td><td>¥4,250</td><td>200kg</td><td><span class="badge badge-success">正常</span></td></tr>
-              <tr><td class="mono">MAT-002</td><td>不锈钢板</td><td>304 3mm</td><td>原料仓</td><td style="font-weight:600;color:var(--warning)">120</td><td>张</td><td>¥280</td><td>¥33,600</td><td>100张</td><td><span class="badge badge-warning">偏低</span></td></tr>
-              <tr><td class="mono">MAT-003</td><td>精密轴套</td><td>#A202</td><td>成品仓</td><td style="font-weight:600">280</td><td>件</td><td>¥158</td><td>¥44,240</td><td>50件</td><td><span class="badge badge-success">正常</span></td></tr>
-              <tr><td class="mono">MAT-004</td><td>法兰盘</td><td>#B105</td><td>成品仓</td><td style="font-weight:600;color:var(--error)">15</td><td>件</td><td>¥170</td><td>¥2,550</td><td>30件</td><td><span class="badge badge-error">紧急</span></td></tr>
-              <tr><td class="mono">MAT-005</td><td>齿轮箱体</td><td>#C308</td><td>半成品仓</td><td style="font-weight:600">86</td><td>件</td><td>¥410</td><td>¥35,260</td><td>20件</td><td><span class="badge badge-success">正常</span></td></tr>
+              <tr><td class="mono">MAT-001</td><td>45# 圆钢</td><td>Φ20mm</td><td>原料仓</td><td style="font-weight:600">500</td><td>kg</td><td>¥8.5</td><td>¥4,250</td><td>200kg</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('stockDetailModal')">查看</button></td></tr>
+              <tr><td class="mono">MAT-002</td><td>不锈钢板</td><td>304 3mm</td><td>原料仓</td><td style="font-weight:600;color:var(--warning)">120</td><td>张</td><td>¥280</td><td>¥33,600</td><td>100张</td><td><span class="badge badge-warning">偏低</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('stockDetailModal')">查看</button></td></tr>
+              <tr><td class="mono">MAT-003</td><td>精密轴套</td><td>#A202</td><td>成品仓</td><td style="font-weight:600">280</td><td>件</td><td>¥158</td><td>¥44,240</td><td>50件</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('stockDetailModal')">查看</button></td></tr>
+              <tr><td class="mono">MAT-004</td><td>法兰盘</td><td>#B105</td><td>成品仓</td><td style="font-weight:600;color:var(--error)">15</td><td>件</td><td>¥170</td><td>¥2,550</td><td>30件</td><td><span class="badge badge-error">紧急</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('stockDetailModal')">查看</button></td></tr>
+              <tr><td class="mono">MAT-005</td><td>齿轮箱体</td><td>#C308</td><td>半成品仓</td><td style="font-weight:600">86</td><td>件</td><td>¥410</td><td>¥35,260</td><td>20件</td><td><span class="badge badge-success">正常</span></td><td class="actions"><button class="btn btn-sm btn-secondary" onclick="openModal('stockDetailModal')">查看</button></td></tr>
             </tbody>
           </table>
         </div>
@@ -662,7 +662,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 新建质检单</button>
+          <button class="btn btn-primary" onclick="openModal('qualityModal')">+ 新建质检单</button>
         </div>
       </div>
 
@@ -697,7 +697,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 新建委外单</button>
+          <button class="btn btn-primary" onclick="openModal('outsourcingModal')">+ 新建委外单</button>
         </div>
       </div>
 
@@ -758,7 +758,7 @@ textarea.form-control{resize:vertical;min-height:100px}
       <div class="card">
         <div class="card-header">
           <span class="card-title">最近收款记录</span>
-          <button class="btn btn-sm btn-primary">+ 收款</button>
+          <button class="btn btn-sm btn-primary" onclick="openModal('financeModal')">+ 收款</button>
         </div>
         <div class="card-body" style="padding:0">
           <table class="table">
@@ -792,7 +792,7 @@ textarea.form-control{resize:vertical;min-height:100px}
           </select>
         </div>
         <div class="toolbar-right">
-          <button class="btn btn-primary">+ 新增员工</button>
+          <button class="btn btn-primary" onclick="openModal('hrModal')">+ 新增员工</button>
         </div>
       </div>
 
@@ -899,7 +899,7 @@ textarea.form-control{resize:vertical;min-height:100px}
         <div class="card">
           <div class="card-header">
             <span class="card-title">用户管理</span>
-            <button class="btn btn-sm btn-primary">+ 新增用户</button>
+            <button class="btn btn-sm btn-primary" onclick="openModal('systemUserModal')">+ 新增用户</button>
           </div>
           <div class="card-body" style="padding:0">
             <table class="table">
@@ -966,11 +966,444 @@ textarea.form-control{resize:vertical;min-height:100px}
         <div class="form-group"><label>行业分类</label><select class="form-control"><option>请选择</option><option>机械设备</option><option>电子制造</option><option>金属加工</option></select></div>
         <div class="form-group"><label>客户等级</label><select class="form-control"><option>请选择</option><option>VIP</option><option>普通</option></select></div>
         <div class="form-group" style="grid-column:span 2"><label>地址</label><input type="text" class="form-control" placeholder="请输入详细地址"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注信息"></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('customerModal')">取消</button>
-      <button class="btn btn-primary">保存</button>
+      <button class="btn btn-primary" onclick="closeModal('customerModal')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Quotation -->
+<div id="quotationModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">新建报价单</span>
+      <button class="modal-close" onclick="closeModal('quotationModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>客户 *</label><select class="form-control"><option>请选择客户</option><option>深圳市XX机械有限公司</option><option>东莞市YY精密电子有限公司</option></select></div>
+        <div class="form-group"><label>报价日期</label><input type="date" class="form-control" value="2026-06-03"></div>
+        <div class="form-group"><label>产品名称 *</label><input type="text" class="form-control" placeholder="请输入产品名称"></div>
+        <div class="form-group"><label>物料编号</label><input type="text" class="form-control" placeholder="请输入物料编号"></div>
+        <div class="form-group"><label>数量</label><input type="number" class="form-control" placeholder="请输入数量"></div>
+        <div class="form-group"><label>单位</label><select class="form-control"><option>件</option><option>个</option><option>套</option><option>kg</option></select></div>
+        <div class="form-group"><label>单价</label><input type="number" class="form-control" placeholder="请输入单价"></div>
+        <div class="form-group"><label>税率</label><select class="form-control"><option>13%</option><option>6%</option><option>9%</option></select></div>
+        <div class="form-group"><label>有效期至</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label>付款方式</label><select class="form-control"><option>款到发货</option><option>月结30天</option><option>预付30%</option></select></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注信息"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('quotationModal')">取消</button>
+      <button class="btn btn-secondary">保存草稿</button>
+      <button class="btn btn-primary" onclick="closeModal('quotationModal')">提交审批</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Order -->
+<div id="orderModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">新建订单</span>
+      <button class="modal-close" onclick="closeModal('orderModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>客户 *</label><select class="form-control"><option>请选择客户</option><option>深圳市XX机械有限公司</option><option>东莞市YY精密电子有限公司</option></select></div>
+        <div class="form-group"><label>订单号</label><input type="text" class="form-control" placeholder="自动生成" disabled></div>
+        <div class="form-group"><label>产品 *</label><select class="form-control"><option>请选择产品</option><option>精密轴套 #A202</option><option>法兰盘 #B105</option><option>齿轮箱体 #C308</option></select></div>
+        <div class="form-group"><label>数量 *</label><input type="number" class="form-control" placeholder="请输入数量"></div>
+        <div class="form-group"><label>单价</label><input type="number" class="form-control" placeholder="请输入单价"></div>
+        <div class="form-group"><label>税率</label><select class="form-control"><option>13%</option><option>6%</option></select></div>
+        <div class="form-group"><label>交货日期 *</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label>收货地址</label><input type="text" class="form-control" placeholder="请输入收货地址"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('orderModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('orderModal')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Production Work Order -->
+<div id="workOrderModal" class="modal-overlay">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title">创建工单</span>
+      <button class="modal-close" onclick="closeModal('workOrderModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>订单号 *</label><select class="form-control"><option>请选择订单</option><option>SO2024060301 - 精密轴套 100件</option></select></div>
+        <div class="form-group"><label>工单号</label><input type="text" class="form-control" placeholder="自动生成" disabled></div>
+        <div class="form-group"><label>产品名称</label><input type="text" class="form-control" value="精密轴套 #A202" disabled></div>
+        <div class="form-group"><label>数量 *</label><input type="number" class="form-control" placeholder="请输入数量"></div>
+        <div class="form-group"><label>机台 *</label><select class="form-control"><option>请选择机台</option><option>CNC-01</option><option>CNC-02</option><option>CNC-03</option><option>CNC-04</option></select></div>
+        <div class="form-group"><label>工序</label><select class="form-control"><option>粗车</option><option>精车</option><option>铣削</option><option>钻孔</option></select></div>
+        <div class="form-group"><label>计划开工</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label>计划完工</label><input type="date" class="form-control"></div>
+        <div class="form-group" style="grid-column:span 2"><label>工艺要求</label><textarea class="form-control" placeholder="请输入工艺要求"></textarea></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('workOrderModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('workOrderModal')">创建工单</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Warehouse In -->
+<div id="warehouseInModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">入库</span>
+      <button class="modal-close" onclick="closeModal('warehouseInModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>入库单号</label><input type="text" class="form-control" placeholder="自动生成" disabled></div>
+        <div class="form-group"><label>入库类型</label><select class="form-control"><option>采购入库</option><option>生产入库</option><option>退货入库</option><option>调拨入库</option></select></div>
+        <div class="form-group"><label>物料 *</label><select class="form-control"><option>请选择物料</option><option>45# 圆钢 Φ20mm</option><option>不锈钢板 304 3mm</option></select></div>
+        <div class="form-group"><label>数量 *</label><input type="number" class="form-control" placeholder="请输入数量"></div>
+        <div class="form-group"><label>单位</label><select class="form-control"><option>件</option><option>kg</option><option>张</option></select></div>
+        <div class="form-group"><label>仓库 *</label><select class="form-control"><option>原料仓</option><option>成品仓</option><option>半成品仓</option></select></div>
+        <div class="form-group"><label>供应商</label><input type="text" class="form-control" placeholder="请输入供应商"></div>
+        <div class="form-group"><label>入库日期</label><input type="date" class="form-control" value="2026-06-03"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('warehouseInModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('warehouseInModal')">确认入库</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Quality Inspection -->
+<div id="qualityModal" class="modal-overlay">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title">新建质检单</span>
+      <button class="modal-close" onclick="closeModal('qualityModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>质检类型</label><select class="form-control"><option>来料检验</option><option>FA首件</option><option>过程检验</option><option>成品检验</option><option>三次元检测</option></select></div>
+        <div class="form-group"><label>关联单号</label><input type="text" class="form-control" placeholder="工单号或物料编号"></div>
+        <div class="form-group"><label>批次号</label><input type="text" class="form-control" placeholder="请输入批次号"></div>
+        <div class="form-group"><label>检验日期</label><input type="date" class="form-control" value="2026-06-03"></div>
+        <div class="form-group"><label>检验员</label><select class="form-control"><option>请选择</option><option>李工</option><option>王工</option><option>张工</option></select></div>
+        <div class="form-group"><label>检验结果</label><select class="form-control"><option>待判定</option><option>合格</option><option>不合格</option></select></div>
+        <div class="form-group" style="grid-column:span 2"><label>检验项目</label><textarea class="form-control" placeholder="请输入检验项目，多个用逗号分隔"></textarea></div>
+        <div class="form-group" style="grid-column:span 2"><label>不合格描述</label><textarea class="form-control" placeholder="如不合格请描述原因"></textarea></div>
+        <div class="form-group" style="grid-column:span 2"><label>处理意见</label><textarea class="form-control" placeholder="请输入处理意见"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('qualityModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('qualityModal')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Outsourcing -->
+<div id="outsourcingModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">新建委外单</span>
+      <button class="modal-close" onclick="closeModal('outsourcingModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>供应商 *</label><select class="form-control"><option>请选择供应商</option><option>广州XX氧化厂</option><option>深圳YY电镀厂</option><option>东莞ZZ热处理</option></select></div>
+        <div class="form-group"><label>委外类型</label><select class="form-control"><option>阳极氧化</option><option>镀锌</option><option>真空淬火</option><option>喷涂</option><option>电镀</option></select></div>
+        <div class="form-group"><label>关联工单</label><input type="text" class="form-control" placeholder="请输入关联工单号"></div>
+        <div class="form-group"><label>产品名称</label><input type="text" class="form-control" placeholder="请输入产品名称"></div>
+        <div class="form-group"><label>数量 *</label><input type="number" class="form-control" placeholder="请输入数量"></div>
+        <div class="form-group"><label>单价</label><input type="number" class="form-control" placeholder="请输入单价"></div>
+        <div class="form-group"><label>交货日期</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label>工艺要求</label><textarea class="form-control" placeholder="请输入工艺要求"></textarea></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('outsourcingModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('outsourcingModal')">确认下发</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Finance Receipt -->
+<div id="financeModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">收款登记</span>
+      <button class="modal-close" onclick="closeModal('financeModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>客户 *</label><select class="form-control"><option>请选择客户</option><option>深圳市XX机械有限公司</option><option>东莞市YY精密电子有限公司</option></select></div>
+        <div class="form-group"><label>订单号</label><select class="form-control"><option>请选择订单</option><option>SO2024060301 - ¥15,800</option><option>SO2024060201 - ¥8,500</option></select></div>
+        <div class="form-group"><label>收款金额 *</label><input type="number" class="form-control" placeholder="请输入收款金额"></div>
+        <div class="form-group"><label>收款日期</label><input type="date" class="form-control" value="2026-06-03"></div>
+        <div class="form-group"><label>收款方式</label><select class="form-control"><option>银行转账</option><option>现金</option><option>支票</option><option>支付宝</option><option>微信</option></select></div>
+        <div class="form-group"><label>账号</label><input type="text" class="form-control" placeholder="请输入收款账号"></div>
+        <div class="form-group" style="grid-column:span 2"><label>摘要</label><input type="text" class="form-control" placeholder="请输入摘要"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('financeModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('financeModal')">确认收款</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: HR Employee -->
+<div id="hrModal" class="modal-overlay">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-header">
+      <span class="modal-title">新增员工</span>
+      <button class="modal-close" onclick="closeModal('hrModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>工号</label><input type="text" class="form-control" placeholder="自动生成" disabled></div>
+        <div class="form-group"><label>姓名 *</label><input type="text" class="form-control" placeholder="请输入姓名"></div>
+        <div class="form-group"><label>性别</label><select class="form-control"><option>男</option><option>女</option></select></div>
+        <div class="form-group"><label>手机号</label><input type="tel" class="form-control" placeholder="请输入手机号"></div>
+        <div class="form-group"><label>部门</label><select class="form-control"><option>生产部</option><option>技术部</option><option>品质部</option><option>采购部</option><option>财务部</option></select></div>
+        <div class="form-group"><label>职位</label><input type="text" class="form-control" placeholder="请输入职位"></div>
+        <div class="form-group"><label>入职日期</label><input type="date" class="form-control"></div>
+        <div class="form-group"><label>身份证号</label><input type="text" class="form-control" placeholder="请输入身份证号"></div>
+        <div class="form-group"><label>学历</label><select class="form-control"><option>高中</option><option>中专</option><option>大专</option><option>本科</option><option>硕士</option></select></div>
+        <div class="form-group"><label>工资</label><input type="number" class="form-control" placeholder="请输入基本工资"></div>
+        <div class="form-group" style="grid-column:span 2"><label>地址</label><input type="text" class="form-control" placeholder="请输入地址"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('hrModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('hrModal')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: System User -->
+<div id="systemUserModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">新增用户</span>
+      <button class="modal-close" onclick="closeModal('systemUserModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>用户名 *</label><input type="text" class="form-control" placeholder="请输入用户名"></div>
+        <div class="form-group"><label>姓名 *</label><input type="text" class="form-control" placeholder="请输入姓名"></div>
+        <div class="form-group"><label>密码 *</label><input type="password" class="form-control" placeholder="请输入密码"></div>
+        <div class="form-group"><label>确认密码</label><input type="password" class="form-control" placeholder="请确认密码"></div>
+        <div class="form-group"><label>角色</label><select class="form-control"><option>管理员</option><option>生管员</option><option>工程师</option><option>操作工</option><option>仓管员</option><option>财务</option></select></div>
+        <div class="form-group"><label>部门</label><select class="form-control"><option>生产部</option><option>技术部</option><option>品质部</option><option>采购部</option><option>财务部</option><option>系统部</option></select></div>
+        <div class="form-group"><label>手机</label><input type="tel" class="form-control" placeholder="请输入手机号"></div>
+        <div class="form-group"><label>邮箱</label><input type="email" class="form-control" placeholder="请输入邮箱"></div>
+        <div class="form-group" style="grid-column:span 2"><label>备注</label><textarea class="form-control" placeholder="请输入备注"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('systemUserModal')">取消</button>
+      <button class="btn btn-primary" onclick="closeModal('systemUserModal')">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Order Detail -->
+<div id="orderDetailModal" class="modal-overlay">
+  <div class="modal" style="max-width:800px">
+    <div class="modal-header">
+      <span class="modal-title">订单详情</span>
+      <button class="modal-close" onclick="closeModal('orderDetailModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--dark-border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+          <div><span class="mono" style="font-size:18px">SO2024060301</span> <span class="badge badge-info">生产中</span></div>
+          <div style="color:var(--text-secondary)">创建于 2026-06-03</div>
+        </div>
+        <div class="grid-3" style="gap:24px">
+          <div><div style="color:var(--text-muted);font-size:12px">客户</div><div style="font-weight:500">深圳市XX机械有限公司</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">产品</div><div style="font-weight:500">精密轴套 #A202</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">数量</div><div style="font-weight:500">100件</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">单价</div><div style="font-weight:500">¥158</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">金额</div><div style="font-weight:500;color:var(--success)">¥15,800</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">交期</div><div style="font-weight:500">2026-06-15</div></div>
+        </div>
+      </div>
+      <div style="padding:20px 24px">
+        <h4 style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">生产进度</h4>
+        <div class="steps" style="margin-bottom:16px">
+          <div class="step done"><div class="step-number">✓</div><div class="step-label">已下单</div></div>
+          <div class="step-line"></div>
+          <div class="step done"><div class="step-number">✓</div><div class="step-label">已排产</div></div>
+          <div class="step-line"></div>
+          <div class="step active"><div class="step-number">3</div><div class="step-label">生产中</div></div>
+          <div class="step-line"></div>
+          <div class="step"><div class="step-number">4</div><div class="step-label">待发货</div></div>
+          <div class="step-line"></div>
+          <div class="step"><div class="step-number">5</div><div class="step-label">已完成</div></div>
+        </div>
+        <table class="table" style="margin-top:16px">
+          <thead><tr><th>工单</th><th>机台</th><th>状态</th><th>完工</th><th>进度</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">WO2024060301</td><td>CNC-01</td><td><span class="badge badge-info">加工中</span></td><td>65/100件</td><td><div class="progress" style="width:80px"><div class="progress-fill blue" style="width:65%"></div></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('orderDetailModal')">关闭</button>
+      <button class="btn btn-primary">跟踪物流</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Customer Detail -->
+<div id="customerDetailModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">客户详情</span>
+      <button class="modal-close" onclick="closeModal('customerDetailModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--dark-border)">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+          <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-purple));display:flex;align-items:center;justify-content:center;font-size:24px">🏭</div>
+          <div><div style="font-size:18px;font-weight:600">深圳市XX机械有限公司</div><span class="badge badge-success">正常</span></div>
+        </div>
+        <div class="grid-2" style="gap:16px">
+          <div><div style="color:var(--text-muted);font-size:12px">客户编号</div><div class="mono">C001</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">行业</div><div>机械设备</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">联系人</div><div>张经理</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">电话</div><div>138****1234</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">地址</div><div>深圳市南山区科技园</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">创建时间</div><div>2024-03-15</div></div>
+        </div>
+      </div>
+      <div style="padding:20px 24px">
+        <h4 style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">往来记录</h4>
+        <table class="table">
+          <thead><tr><th>订单</th><th>日期</th><th>金额</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">SO2024060301</td><td>2026-06-03</td><td style="color:var(--success)">¥15,800</td><td><span class="badge badge-info">生产中</span></td></tr>
+            <tr><td class="mono">SO2024060201</td><td>2026-06-02</td><td style="color:var(--success)">¥8,500</td><td><span class="badge badge-warning">已发货</span></td></tr>
+            <tr><td class="mono">SO2024060101</td><td>2026-06-01</td><td style="color:var(--success)">¥12,300</td><td><span class="badge badge-success">已完成</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('customerDetailModal')">关闭</button>
+      <button class="btn btn-primary">编辑</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Quotation Detail -->
+<div id="quotationDetailModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">报价单详情</span>
+      <button class="modal-close" onclick="closeModal('quotationDetailModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--dark-border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+          <div><span class="mono" style="font-size:18px">Q2024060301</span> <span class="badge badge-warning">待审批</span></div>
+          <div style="color:var(--text-secondary)">2026-06-03</div>
+        </div>
+        <div class="grid-2" style="gap:16px">
+          <div><div style="color:var(--text-muted);font-size:12px">客户</div><div style="font-weight:500">深圳市XX机械有限公司</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">产品</div><div style="font-weight:500">精密轴套 #A202</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">数量</div><div style="font-weight:500">100件</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">单价</div><div style="font-weight:500">¥158</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">税率</div><div style="font-weight:500">13%</div></div>
+          <div><div style="color:var(--text-muted);font-size:12px">有效期</div><div style="font-weight:500">2026-07-03</div></div>
+        </div>
+        <div style="margin-top:16px;padding:16px;background:rgba(30,30,46,.5);border-radius:8px;text-align:right">
+          <div style="color:var(--text-muted)">报价金额</div>
+          <div style="font-size:28px;font-weight:700;color:var(--success)">¥17,854</div>
+          <div style="color:var(--text-muted);font-size:12px">(含税)</div>
+        </div>
+      </div>
+      <div style="padding:20px 24px">
+        <h4 style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">价格明细</h4>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--dark-border)"><span>单价</span><span>¥158 × 100件</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--dark-border)"><span>金额</span><span>¥15,800</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--dark-border)"><span>税额 (13%)</span><span>¥2,054</span></div>
+        <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:600"><span>价税合计</span><span style="color:var(--success)">¥17,854</span></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('quotationDetailModal')">关闭</button>
+      <button class="btn btn-secondary">复制</button>
+      <button class="btn btn-primary">转订单</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Warehouse Stock Detail -->
+<div id="stockDetailModal" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">库存详情</span>
+      <button class="modal-close" onclick="closeModal('stockDetailModal')">×</button>
+    </div>
+    <div class="modal-body" style="padding:0">
+      <div style="padding:20px 24px;border-bottom:1px solid var(--dark-border)">
+        <div style="display:flex;justify-content:space-between;margin-bottom:16px">
+          <div><span class="mono" style="font-size:18px">MAT-001</span> <span class="badge badge-success">正常</span></div>
+          <div style="color:var(--text-secondary)">原料仓</div>
+        </div>
+        <div style="font-size:20px;font-weight:600;margin-bottom:16px">45# 圆钢 Φ20mm</div>
+        <div class="grid-3" style="gap:16px">
+          <div style="text-align:center;padding:16px;background:rgba(30,30,46,.5);border-radius:8px">
+            <div style="font-size:24px;font-weight:700;color:var(--neon-blue)">500</div>
+            <div style="color:var(--text-muted);font-size:12px">当前库存</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(30,30,46,.5);border-radius:8px">
+            <div style="font-size:24px;font-weight:700">200</div>
+            <div style="color:var(--text-muted);font-size:12px">安全库存</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(30,30,46,.5);border-radius:8px">
+            <div style="font-size:24px;font-weight:700;color:var(--success)">¥8.5</div>
+            <div style="color:var(--text-muted);font-size:12px">单价</div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:20px 24px">
+        <h4 style="margin-bottom:12px;color:var(--text-secondary);font-size:13px">近期出入库</h4>
+        <table class="table">
+          <thead><tr><th>日期</th><th>类型</th><th>数量</th><th>单据</th></tr></thead>
+          <tbody>
+            <tr><td>2026-06-03</td><td><span class="badge badge-success">入库</span></td><td style="color:var(--success)">+200kg</td><td class="mono">IN2024060301</td></tr>
+            <tr><td>2026-06-01</td><td><span class="badge badge-error">出库</span></td><td style="color:var(--error)">-150kg</td><td class="mono">OUT2024060101</td></tr>
+            <tr><td>2026-05-28</td><td><span class="badge badge-success">入库</span></td><td style="color:var(--success)">+500kg</td><td class="mono">IN2024052801</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('stockDetailModal')">关闭</button>
+      <button class="btn btn-secondary">出入库记录</button>
+      <button class="btn btn-primary">盘点</button>
     </div>
   </div>
 </div>
