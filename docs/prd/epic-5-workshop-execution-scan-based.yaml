@@ -1,0 +1,246 @@
+epic_id: 5
+title: "Workshop Execution (Scan-based)"
+description: |
+  扫码驱动的车间执行是本系统的核心差异化能力。
+  操作工通过扫码枪/PDA实现：扫码开工（开始加工）、扫码报工（报告产量）、
+  扫码过站（工序间流转），实现车间数字化管理，实时追踪工单进度。
+
+stories:
+  - id: "5.1"
+    title: "Scan to Start Work (扫码开工)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to start work on operation"
+        scenario:
+          given: "Work order is released and scheduled"
+          when: "Operator scans work order barcode via POST /api/workshop/start"
+          then:
+            - "System identifies work order and current operation"
+            - "Work order operation status changes to 'in_progress'"
+            - "Actual start time is recorded"
+            - "Machine assignment is confirmed"
+            - "Response shows: work order info, operation details, expected quantity"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Can only start work on released work orders"
+          - id: "BR-1.2"
+            rule: "Cannot start same operation twice without completion"
+          - id: "BR-1.3"
+            rule: "Operator must be assigned to the machine or work center"
+
+        data_validation:
+          - field: "barcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode format: WO-YYYYMMDD-XXXX"
+            error_message: "无效的工单条码"
+          - field: "machineId"
+            type: "uuid"
+            required: true
+            rules: "Valid machine UUID"
+            error_message: "请扫描机台条码"
+
+        error_handling:
+          - scenario: "Work order not found"
+            code: "404"
+            message: "工单不存在"
+            action: "返回404，提示核对条码"
+          - scenario: "Work order not released"
+            code: "400"
+            message: "工单未下发"
+            action: "返回400，提示联系生管员"
+          - scenario: "Operation already started"
+            code: "409"
+            message: "该工序已开始加工"
+            action: "返回409，显示当前状态"
+
+    provides_apis:
+      - "POST /api/workshop/start"
+      - "GET /api/workshop/current"
+    consumes_apis: []
+    dependencies: ["4.1", "4.3"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-5-front-end-spec.md"
+        sections:
+          - "Story 5.1: Scan to Start Work"
+          - "Mobile: Scan Start UI"
+      architecture: null
+
+  - id: "5.2"
+    title: "Scan to Report Progress (扫码报工)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to report production quantity"
+        scenario:
+          given: "Work order operation is in progress"
+          when: "Operator reports quantity via POST /api/workshop/report"
+          then:
+            - "Production record is created with quantity and timestamp"
+            - "Accumulated quantity is updated"
+            - "Operator is prompted if quantity exceeds tolerance"
+            - "Status changes to 'completed' if expected quantity reached"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Quantity must be positive integer"
+          - id: "BR-1.2"
+            rule: "Over-production requires confirmation (> 10% of expected)"
+          - id: "BR-1.3"
+            rule: "Each report creates audit trail with operator, time, quantity"
+
+        data_validation:
+          - field: "barcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive integer"
+            error_message: "请输入有效的数量"
+          - field: "quality"
+            type: "string"
+            required: false
+            rules: "ok, rework, scrap"
+            error_message: "请选择质量状态"
+
+        error_handling:
+          - scenario: "Work order not in progress"
+            code: "400"
+            message: "工单未在加工中"
+            action: "返回400，请先扫码开工"
+          - scenario: "Quantity exceeds tolerance"
+            code: "200"
+            message: "报工数量超过预期，请确认"
+            action: "返回确认提示，等待二次确认"
+
+    provides_apis:
+      - "POST /api/workshop/report"
+      - "GET /api/workshop/reports/:workOrderId"
+    consumes_apis: []
+    dependencies: ["5.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "5.3"
+    title: "Scan to Transfer Station (扫码过站)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan barcode to transfer to next operation"
+        scenario:
+          given: "Current operation is completed"
+          when: "Operator scans next station barcode via POST /api/workshop/transfer"
+          then:
+            - "Current operation status changes to 'completed'"
+            - "Next operation status changes to 'pending'"
+            - "Transfer record is created with timestamps"
+            - "Material movement is tracked if required"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Can only transfer after reporting expected quantity"
+          - id: "BR-1.2"
+            rule: "Transfer creates material link between operations"
+          - id: "BR-1.3"
+            rule: "Final operation completion triggers work order status update"
+
+        data_validation:
+          - field: "workOrderBarcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "nextStationCode"
+            type: "string"
+            required: true
+            rules: "Valid station code from route"
+            error_message: "请扫描正确的工序条码"
+
+        error_handling:
+          - scenario: "Current operation not completed"
+            code: "400"
+            message: "当前工序尚未完成"
+            action: "返回400，请先完成报工"
+          - scenario: "Invalid station sequence"
+            code: "400"
+            message: "工序顺序错误"
+            action: "返回400，显示正确的下一工序"
+
+    provides_apis:
+      - "POST /api/workshop/transfer"
+      - "GET /api/workshop/transfer-history/:workOrderId"
+    consumes_apis: []
+    dependencies: ["5.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "5.4"
+    title: "Material Issuance (领料管理)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Scan work order to issue materials"
+        scenario:
+          given: "Work order is scheduled with BOM"
+          when: "Warehouse staff scans work order via POST /api/workshop/material-issue"
+          then:
+            - "BOM materials are retrieved"
+            - "Staff confirms actual issued quantities"
+            - "Inventory is deducted"
+            - "Material issue record is created"
+            - "Label with work order info is printed"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Issued quantity cannot exceed BOM quantity (with tolerance)"
+          - id: "BR-1.2"
+            rule: "Material issue creates cost accumulation on work order"
+          - id: "BR-1.3"
+            rule: "Shortage requires separate purchase request"
+
+        data_validation:
+          - field: "workOrderBarcode"
+            type: "string"
+            required: true
+            rules: "Valid work order barcode"
+            error_message: "无效的工单条码"
+          - field: "materials"
+            type: "array"
+            required: true
+            rules: "{materialCode, quantity}[]"
+            error_message: "请输入有效的领料信息"
+
+        error_handling:
+          - scenario: "Insufficient inventory"
+            code: "400"
+            message: "库存不足"
+            action: "返回400，显示可发放数量，建议采购"
+
+    provides_apis:
+      - "POST /api/workshop/material-issue"
+      - "GET /api/workshop/material-issue/:workOrderId"
+    consumes_apis: []
+    dependencies: ["4.1", "6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null

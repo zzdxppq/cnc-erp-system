@@ -1,0 +1,357 @@
+epic_id: 2
+title: "Customer & Quotation Management"
+description: |
+  客户管理是业务入口，管理客户档案、联系人、洽谈进展，支持客户保护机制。
+  报价管理承接客户需求，支持上传客户图纸、录入图号、BOM报价预估、多级审批，
+  实现报价单导出和报价转订单的无缝衔接。
+
+stories:
+  - id: "2.1"
+    title: "Customer Management - Customer Profile"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create and manage customer records"
+        scenario:
+          given: "Salesman is authenticated"
+          when: "Salesman creates a new customer via POST /api/customers"
+          then:
+            - "Customer record is created with name, type, industry, credit limit, billing info"
+            - "Customer code is auto-generated (format: CUST-YYYYMMDD-XXXX)"
+            - "Response returns 201 with created customer"
+            - "Customer is assigned to creator (owner)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Customer code must be unique"
+          - id: "BR-1.2"
+            rule: "Customer types: potential, active, inactive"
+          - id: "BR-1.3"
+            rule: "Industry categories come from dictionary"
+          - id: "BR-1.4"
+            rule: "New customer has protection period of 30 days (configurable)"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 100 chars"
+            error_message: "请输入客户名称"
+          - field: "type"
+            type: "string"
+            required: true
+            rules: "Must be valid customer type from dictionary"
+            error_message: "请选择客户类型"
+          - field: "industry"
+            type: "string"
+            required: false
+            rules: "Must be valid industry from dictionary if provided"
+            error_message: "请选择有效的行业分类"
+
+        error_handling:
+          - scenario: "Duplicate customer name"
+            code: "409"
+            message: "该客户名称已存在"
+            action: "返回409，提示是否查询现有客户"
+
+    provides_apis:
+      - "POST /api/customers"
+      - "GET /api/customers"
+      - "GET /api/customers/:id"
+      - "PUT /api/customers/:id"
+      - "DELETE /api/customers/:id"
+    consumes_apis: []
+    dependencies: ["1.1", "1.2"]
+    sm_hints:
+      front_end_spec:
+        file: "epic-2-front-end-spec.md"
+        sections:
+          - "Story 2.1: Customer Profile"
+      architecture: null
+
+  - id: "2.2"
+    title: "Customer Management - Contact Persons"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Manage contact persons for customer"
+        scenario:
+          given: "Customer record exists"
+          when: "User adds a contact person via POST /api/customers/:customerId/contacts"
+          then:
+            - "Contact record is created with name, position, phone, email"
+            - "Only one contact can be marked as primary"
+            - "Response returns 201 with created contact"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Email format must be valid"
+          - id: "BR-1.2"
+            rule: "Phone format: 11 digits for mobile, allow extension"
+          - id: "BR-1.3"
+            rule: "Only one contact can have is_primary=true per customer"
+
+        data_validation:
+          - field: "name"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 50 chars"
+            error_message: "请输入联系人姓名"
+          - field: "phone"
+            type: "string"
+            required: false
+            rules: "11 digits or with extension"
+            error_message: "请输入有效的电话号码"
+
+        error_handling:
+          - scenario: "Customer not found"
+            code: "404"
+            message: "客户不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "POST /api/customers/:customerId/contacts"
+      - "GET /api/customers/:customerId/contacts"
+      - "PUT /api/customers/:customerId/contacts/:id"
+      - "DELETE /api/customers/:customerId/contacts/:id"
+    consumes_apis: []
+    dependencies: ["2.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.3"
+    title: "Quotation Management - Quotation Creation"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Create quotation with drawing upload"
+        scenario:
+          given: "Customer exists in system"
+          when: "Salesman creates quotation via POST /api/quotations"
+          then:
+            - "Quotation is created with customer, delivery date, validity period"
+            - "Quotation code is auto-generated (format: QUOT-YYYYMMDD-XXXX)"
+            - "Salesman can upload multiple drawing files (PDF, CAD)"
+            - "Each drawing is assigned a drawing number (图号)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Quotation statuses: draft, submitted, approved, rejected, converted"
+          - id: "BR-1.2"
+            rule: "Drawing file types: PDF, DWG, DXF, STEP, STL (max 50MB per file)"
+          - id: "BR-1.3"
+            rule: "Drawing version is tracked (v1, v2, v3...)"
+
+        data_validation:
+          - field: "customerId"
+            type: "uuid"
+            required: true
+            rules: "Valid customer UUID"
+            error_message: "请选择客户"
+          - field: "deliveryDate"
+            type: "date"
+            required: true
+            rules: "Must be future date"
+            error_message: "请选择有效的交期"
+          - field: "drawingNumber"
+            type: "string"
+            required: true
+            rules: "Non-empty, max 50 chars"
+            error_message: "请输入图号"
+
+        error_handling:
+          - scenario: "Customer not found"
+            code: "404"
+            message: "客户不存在"
+            action: "返回404"
+          - scenario: "File too large"
+            code: "413"
+            message: "文件大小超过限制(50MB)"
+            action: "返回413，提示压缩文件"
+
+    provides_apis:
+      - "POST /api/quotations"
+      - "GET /api/quotations"
+      - "GET /api/quotations/:id"
+      - "PUT /api/quotations/:id"
+      - "DELETE /api/quotations/:id"
+      - "POST /api/quotations/:id/drawings"
+      - "GET /api/quotations/:id/drawings"
+    consumes_apis: []
+    dependencies: ["2.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.4"
+    title: "Quotation Management - BOM Estimation"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "BOM cost estimation for quotation"
+        scenario:
+          given: "Quotation exists with drawings"
+          when: "Engineer adds BOM line items via POST /api/quotations/:id/items"
+          then:
+            - "BOM item is created with material, process, surface treatment"
+            - "System calculates material cost based on dimensions and unit price"
+            - "System calculates process cost based on man hours and hourly rate"
+            - "System calculates surface treatment cost"
+            - "Total cost and suggested price are auto-calculated"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Material cost = (length * width * height * density * unit_price) / utilization_rate"
+          - id: "BR-1.2"
+            rule: "Process cost = sum of (man_hours * hourly_rate) for each operation"
+          - id: "BR-1.3"
+            rule: "Surface treatment cost based on surface area and treatment type"
+          - id: "BR-1.4"
+            rule: "Profit margin can be adjusted (default 15%)"
+
+        data_validation:
+          - field: "materialCode"
+            type: "string"
+            required: true
+            rules: "Valid material code from BOM"
+            error_message: "请选择材料"
+          - field: "dimensions"
+            type: "object"
+            required: true
+            rules: "{length, width, height} all positive numbers"
+            error_message: "请输入有效的尺寸"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive integer"
+            error_message: "请输入有效的数量"
+
+        error_handling:
+          - scenario: "Material not found"
+            code: "404"
+            message: "材料不存在"
+            action: "返回404"
+          - scenario: "Invalid dimensions"
+            code: "400"
+            message: "尺寸数据无效"
+            action: "返回400，列出具体错误"
+
+    provides_apis:
+      - "POST /api/quotations/:id/items"
+      - "GET /api/quotations/:id/items"
+      - "PUT /api/quotations/:id/items/:itemId"
+      - "DELETE /api/quotations/:id/items/:itemId"
+      - "GET /api/quotations/:id/summary"
+    consumes_apis: []
+    dependencies: ["2.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.5"
+    title: "Quotation Management - Approval Workflow"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Multi-level quotation approval"
+        scenario:
+          given: "Quotation is in draft status with all items complete"
+          when: "Salesman submits quotation for approval via POST /api/quotations/:id/submit"
+          then:
+            - "Quotation status changes to 'submitted'"
+            - "Workflow instance is created based on amount thresholds"
+            - "Approvers are notified (amount < 10k: direct manager, 10k-50k: manager + director, > 50k: manager + director + VP)"
+            - "Quotation cannot be modified while pending approval"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Approval levels: <=10K (1 level), 10K-50K (2 levels), >50K (3 levels)"
+          - id: "BR-1.2"
+            rule: "Approver can approve, reject, or request revision"
+          - id: "BR-1.3"
+            rule: "Rejected quotation returns to draft status"
+          - id: "BR-1.4"
+            rule: "Approved quotation status changes to 'approved'"
+
+        error_handling:
+          - scenario: "Quotation items incomplete"
+            code: "400"
+            message: "报价明细不完整，无法提交审批"
+            action: "返回400，列出缺失项"
+          - scenario: "No approver configured"
+            code: "500"
+            message: "审批流程未配置"
+            action: "返回500，触发告警"
+
+    provides_apis:
+      - "POST /api/quotations/:id/submit"
+      - "GET /api/quotations/:id/workflow"
+      - "POST /api/quotations/:id/approve"
+      - "POST /api/quotations/:id/reject"
+    consumes_apis: []
+    dependencies: ["2.3", "2.4", "1.3"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "2.6"
+    title: "Quotation to Order Conversion"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Convert approved quotation to sales order"
+        scenario:
+          given: "Quotation is in approved status"
+          when: "Salesman clicks 'Convert to Order' via POST /api/quotations/:id/convert"
+          then:
+            - "Sales order is created with all quotation items"
+            - "Customer and contact info are copied"
+            - "Drawing attachments are linked (not duplicated)"
+            - "Quotation status changes to 'converted'"
+            - "Order code is auto-generated (format: SO-YYYYMMDD-XXXX)"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Only approved quotations can be converted"
+          - id: "BR-1.2"
+            rule: "Converted quotation cannot be modified or deleted"
+          - id: "BR-1.3"
+            rule: "Original quotation number is preserved in order reference"
+
+        error_handling:
+          - scenario: "Quotation not approved"
+            code: "400"
+            message: "报价单尚未审批通过，无法转订单"
+            action: "返回400"
+          - scenario: "Already converted"
+            code: "409"
+            message: "报价单已转订单"
+            action: "返回409，提示查看已有订单"
+
+    provides_apis:
+      - "POST /api/quotations/:id/convert"
+      - "GET /api/orders/from-quotation/:quotationId"
+    consumes_apis: []
+    dependencies: ["2.5"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null

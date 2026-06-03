@@ -1,0 +1,353 @@
+epic_id: 6
+title: "Warehouse & Quality Management"
+description: |
+  仓储管理实现扫码驱动的出入库管理：APP扫码入库、扫码出库、库存查询、条码打印。
+  品质管理实现全流程质检：来料检验（IQC）、过程检验（IPQC）、成品检验（OQC）、
+  FA首件确认、三次元检测、质检报告留痕。
+
+stories:
+  - id: "6.1"
+    title: "Warehouse - Scan-based Stock In"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "APP scan to receive materials into warehouse"
+        scenario:
+          given: "Purchase order or material requisition exists"
+          when: "Warehouse staff scans material barcode via POST /api/warehouse/stock-in"
+          then:
+            - "Material batch is identified"
+            - "Quantity is entered (with unit conversion)"
+            - "Location assignment is recorded (warehouse, zone, bin)"
+            - "Inventory is updated"
+            - "Receipt record is created"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Batch number is auto-generated or scanned"
+          - id: "BR-1.2"
+            rule: "Default location based on material type"
+          - id: "BR-1.3"
+            rule: "Quantity tolerance: ±2% for materials, 0% for critical items"
+
+        data_validation:
+          - field: "materialBarcode"
+            type: "string"
+            required: true
+            rules: "Valid material barcode"
+            error_message: "无效的物料条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive number"
+            error_message: "请输入有效的数量"
+          - field: "locationCode"
+            type: "string"
+            required: true
+            rules: "Valid location code"
+            error_message: "请扫描库位条码"
+
+        error_handling:
+          - scenario: "Material not registered"
+            code: "404"
+            message: "物料不存在"
+            action: "返回404，提示先注册物料"
+          - scenario: "Quantity exceeds PO"
+            code: "400"
+            message: "数量超过采购订单"
+            action: "返回400，显示PO数量"
+
+    provides_apis:
+      - "POST /api/warehouse/stock-in"
+      - "GET /api/warehouse/stock-in/:id"
+      - "GET /api/warehouse/receipts"
+    consumes_apis: []
+    dependencies: []
+    sm_hints:
+      front_end_spec:
+        file: "epic-6-front-end-spec.md"
+        sections:
+          - "Story 6.1: Scan-based Stock In"
+          - "Mobile: Warehouse UI"
+      architecture: null
+
+  - id: "6.2"
+    title: "Warehouse - Scan-based Stock Out"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "APP scan to issue materials from warehouse"
+        scenario:
+          given: "Material issue request exists (work order or production)"
+          when: "Warehouse staff scans material barcode via POST /api/warehouse/stock-out"
+          then:
+            - "Material batch is identified"
+            - "Quantity is entered"
+            - "Inventory is deducted"
+            - "Issue record is created with reference to work order"
+            - "FIFO logic is applied for batch selection"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "FIFO (First In First Out) for batch selection"
+          - id: "BR-1.2"
+            rule: "Cannot issue more than available quantity"
+          - id: "BR-1.3"
+            rule: "Issue creates cost link to work order or cost center"
+
+        data_validation:
+          - field: "materialBarcode"
+            type: "string"
+            required: true
+            rules: "Valid material barcode"
+            error_message: "无效的物料条码"
+          - field: "quantity"
+            type: "number"
+            required: true
+            rules: "Positive number, <= available"
+            error_message: "请输入有效的数量"
+
+        error_handling:
+          - scenario: "Insufficient stock"
+            code: "400"
+            message: "库存不足"
+            action: "返回400，显示可用数量"
+          - scenario: "Material in quality hold"
+            code: "400"
+            message: "物料在质检中，不可发放"
+            action: "返回400，等待质检完成"
+
+    provides_apis:
+      - "POST /api/warehouse/stock-out"
+      - "GET /api/warehouse/stock-out/:id"
+      - "GET /api/warehouse/issues"
+    consumes_apis: []
+    dependencies: ["6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.3"
+    title: "Warehouse - Inventory Query"
+    repository_type: monolith
+    estimated_complexity: low
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Query inventory by scan or search"
+        scenario:
+          given: "User has warehouse access"
+          when: "User scans material barcode via GET /api/warehouse/inventory/:materialCode"
+          then:
+            - "Current stock quantity is returned"
+            - "Batch details (batch number, location, received date) are listed"
+            - "Reserved quantity (for work orders) is shown"
+            - "Available quantity = stock - reserved"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "Inventory is real-time (no delay)"
+          - id: "BR-1.2"
+            rule: "Reserved quantity locked for confirmed work orders"
+
+        error_handling:
+          - scenario: "Material not found"
+            code: "404"
+            message: "物料不存在"
+            action: "返回404"
+
+    provides_apis:
+      - "GET /api/warehouse/inventory/:materialCode"
+      - "GET /api/warehouse/inventory"
+      - "GET /api/warehouse/inventory/location/:locationCode"
+    consumes_apis: []
+    dependencies: ["6.1", "6.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.4"
+    title: "Quality - Incoming Inspection (IQC)"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record incoming material inspection results"
+        scenario:
+          given: "Material is received and pending inspection"
+          when: "QA inspector creates inspection via POST /api/quality/iqc"
+          then:
+            - "Inspection record is created with batch, sample size, inspection items"
+            - "Inspection items follow predefined checklist (dimension, appearance, function)"
+            - "Results (pass/fail) are recorded per item"
+            - "Final verdict: pass, fail, or conditional pass"
+            - "If fail, material is quarantined or returned"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "AQL (Acceptable Quality Level) sampling plan based on batch size"
+          - id: "BR-1.2"
+            rule: "Critical items: zero tolerance (any fail = batch fail)"
+          - id: "BR-1.3"
+            rule: "Inspection records are retained for traceability"
+
+        data_validation:
+          - field: "batchId"
+            type: "uuid"
+            required: true
+            rules: "Valid batch UUID"
+            error_message: "请扫描批次条码"
+          - field: "inspectionItems"
+            type: "array"
+            required: true
+            rules: "{itemCode, result, remarks}[]"
+            error_message: "请完成所有检验项"
+
+        error_handling:
+          - scenario: "Batch not found"
+            code: "404"
+            message: "批次不存在"
+            action: "返回404"
+          - scenario: "Inspection already done"
+            code: "409"
+            message: "该批次已完成检验"
+            action: "返回409，显示检验结果"
+
+    provides_apis:
+      - "POST /api/quality/iqc"
+      - "GET /api/quality/iqc/:id"
+      - "GET /api/quality/iqc/batch/:batchId"
+    consumes_apis: []
+    dependencies: ["6.1"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.5"
+    title: "Quality - First Article Inspection (FAI/FA)"
+    repository_type: monolith
+    estimated_complexity: high
+    priority: P0
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record first article inspection for new orders"
+        scenario:
+          given: "Work order is completed (first piece)"
+          when: "QA inspector records FAI via POST /api/quality/fai"
+          then:
+            - "FAI record is created linked to work order"
+            - "Inspection dimensions are compared against drawing specifications"
+            - "CMM (Coordinate Measuring Machine) data can be imported"
+            - "Results: pass, fail, or rework required"
+            - "Pass triggers production release"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "FAI is required for new parts, engineering changes, or supplier changes"
+          - id: "BR-1.2"
+            rule: "Dimension tolerance follows drawing specifications"
+          - id: "BR-1.3"
+            rule: "CMM data import supports CSV format"
+
+        data_validation:
+          - field: "workOrderId"
+            type: "uuid"
+            required: true
+            rules: "Valid work order UUID"
+            error_message: "请扫描工单条码"
+          - field: "measurements"
+            type: "array"
+            required: true
+            rules: "{dimensionCode, nominal, actual, tolerance}[]"
+            error_message: "请输入测量数据"
+
+        error_handling:
+          - scenario: "Work order not completed"
+            code: "400"
+            message: "工单尚未完成首件"
+            action: "返回400"
+          - scenario: "Dimension out of tolerance"
+            code: "200"
+            message: "尺寸超差"
+            action: "返回警告，记录实际值，要求确认"
+
+    provides_apis:
+      - "POST /api/quality/fai"
+      - "GET /api/quality/fai/:id"
+      - "GET /api/quality/fai/work-order/:workOrderId"
+      - "POST /api/quality/fai/:id/cmm-import"
+    consumes_apis: []
+    dependencies: ["5.2"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
+
+  - id: "6.6"
+    title: "Quality - CMM (Three-dimensional Measurement) Inspection"
+    repository_type: monolith
+    estimated_complexity: medium
+    priority: P1
+
+    acceptance_criteria:
+      - id: AC1
+        title: "Record CMM inspection with import capability"
+        scenario:
+          given: "Part is ready for CMM measurement"
+          when: "QA inspector imports CMM data via POST /api/quality/cmm"
+          then:
+            - "CMM record is created with measurement points"
+            - "Points are compared against nominal values and tolerances"
+            - "Overall result: pass or fail based on all points"
+            - "Report is generated in PDF format"
+            - "Report is linked to work order and drawing"
+
+        business_rules:
+          - id: "BR-1.1"
+            rule: "CMM data format: CSV with columns (point_id, x, y, z, nominal_x, nominal_y, nominal_z)"
+          - id: "BR-1.2"
+            rule: "Tolerance interpretation: +/- value or GD&T symbols"
+          - id: "BR-1.3"
+            rule: "Report includes: part info, measurement date, operator, results summary"
+
+        data_validation:
+          - field: "workOrderId"
+            type: "uuid"
+            required: true
+            rules: "Valid work order UUID"
+            error_message: "请输入工单号"
+          - field: "csvData"
+            type: "file"
+            required: true
+            rules: "Valid CSV format"
+            error_message: "请上传有效的CMM数据文件"
+
+        error_handling:
+          - scenario: "Invalid CSV format"
+            code: "400"
+            message: "CSV格式不正确"
+            action: "返回400，显示正确格式示例"
+          - scenario: "Missing required columns"
+            code: "400"
+            message: "缺少必需列"
+            action: "返回400，列出必需列"
+
+    provides_apis:
+      - "POST /api/quality/cmm"
+      - "GET /api/quality/cmm/:id"
+      - "GET /api/quality/cmm/:id/report"
+      - "GET /api/quality/cmm/work-order/:workOrderId"
+    consumes_apis: []
+    dependencies: ["6.5"]
+    sm_hints:
+      front_end_spec: null
+      architecture: null
