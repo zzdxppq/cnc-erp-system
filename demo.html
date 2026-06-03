@@ -305,79 +305,284 @@ textarea.form-control{resize:vertical;min-height:100px}
 
     <!-- ===== DASHBOARD ===== -->
     <div id="page-dashboard" class="page active">
-      <h1 class="page-title">📊 生产看板</h1>
+      <h1 class="page-title">📊 <span id="dashboardTitle">首页看板</span></h1>
       <p class="page-subtitle">2026年6月3日 星期三</p>
 
-      <div class="alert alert-info">
+      <div class="alert alert-info" id="dashboardWelcome">
         <span class="alert-icon">ℹ️</span>
-        <div>
+        <div id="welcomeText">
           <strong>欢迎使用CNC加工厂ERP系统</strong><br>
           <span style="opacity:.8">本系统支持客户管理、报价订单、生产排产、车间执行、仓储物流、委外加工、财务人事等全流程管理。</span>
         </div>
       </div>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon blue">¥</div>
-          <div class="stat-value">¥128,500</div>
-          <div class="stat-label">今日产值</div>
-          <div class="stat-change up">↑ 12.5% 较昨日</div>
+      <!-- 管理员/生产主管 看板 -->
+      <div id="dash-admin" class="dash-content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">¥</div>
+            <div class="stat-value">¥128,500</div>
+            <div class="stat-label">今日产值</div>
+            <div class="stat-change up">↑ 12.5% 较昨日</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">📋</div>
+            <div class="stat-value">24</div>
+            <div class="stat-label">生产工单</div>
+            <div class="stat-change up">↑ 3 新增</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⚠️</div>
+            <div class="stat-value">5</div>
+            <div class="stat-label">逾期提醒</div>
+            <div class="stat-change down">↓ 2 减少</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">📦</div>
+            <div class="stat-value">18天</div>
+            <div class="stat-label">库存周转</div>
+            <div class="stat-change up">↓ 3天 优化</div>
+          </div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon green">📋</div>
-          <div class="stat-value">24</div>
-          <div class="stat-label">生产工单</div>
-          <div class="stat-change up">↑ 3 新增</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon orange">⚠️</div>
-          <div class="stat-value">5</div>
-          <div class="stat-label">逾期提醒</div>
-          <div class="stat-change down">↓ 2 减少</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon purple">📦</div>
-          <div class="stat-value">18天</div>
-          <div class="stat-label">库存周转</div>
-          <div class="stat-change up">↓ 3天 优化</div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">工单动态</span>
+              <a href="#" onclick="showPage('production')" class="btn btn-sm btn-secondary">查看全部</a>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="table">
+                <thead><tr><th>工单号</th><th>产品</th><th>机台</th><th>状态</th><th>进度</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">WO2024060301</td><td>精密轴套 #A202</td><td>CNC-01</td><td><span class="badge badge-info">加工中</span></td><td><div class="progress" style="width:100px"><div class="progress-fill blue" style="width:65%"></div></div></td></tr>
+                  <tr><td class="mono">WO2024060302</td><td>法兰盘 #B105</td><td>CNC-03</td><td><span class="badge badge-purple">待加工</span></td><td><div class="progress" style="width:100px"><div class="progress-fill orange" style="width:0%"></div></div></td></tr>
+                  <tr><td class="mono">WO2024060303</td><td>齿轮箱体 #C308</td><td>CNC-02</td><td><span class="badge badge-success">已完成</span></td><td><div class="progress" style="width:100px"><div class="progress-fill green" style="width:100%"></div></div></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">实时通知</span>
+              <span class="badge badge-info">4 条新消息</span>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">⚠️</span>
+                <div>工单 WO2024060105 已逾期3天，请尽快处理</div>
+              </div>
+              <div class="alert alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">📄</span>
+                <div>新报价单来自：深圳市XX机械有限公司</div>
+              </div>
+              <div class="alert alert-success" style="margin-bottom:12px">
+                <span class="alert-icon">✅</span>
+                <div>采购订单 PO2024060201 已完成入库</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">工单动态</span>
-            <a href="#" onclick="showPage('production')" class="btn btn-sm btn-secondary">查看全部</a>
+      <!-- 仓管员 看板 -->
+      <div id="dash-warehouse" class="dash-content" style="display:none">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📦</div>
+            <div class="stat-value">1,258</div>
+            <div class="stat-label">库存SKU</div>
+            <div class="stat-change">实时更新</div>
           </div>
-          <div class="card-body" style="padding:0">
-            <table class="table">
-              <thead><tr><th>工单号</th><th>产品</th><th>机台</th><th>状态</th><th>进度</th></tr></thead>
-              <tbody>
-                <tr><td class="mono">WO2024060301</td><td>精密轴套 #A202</td><td>CNC-01</td><td><span class="badge badge-info">加工中</span></td><td><div class="progress" style="width:100px"><div class="progress-fill blue" style="width:65%"></div></div></td></tr>
-                <tr><td class="mono">WO2024060302</td><td>法兰盘 #B105</td><td>CNC-03</td><td><span class="badge badge-purple">待加工</span></td><td><div class="progress" style="width:100px"><div class="progress-fill orange" style="width:0%"></div></div></td></tr>
-                <tr><td class="mono">WO2024060303</td><td>齿轮箱体 #C308</td><td>CNC-02</td><td><span class="badge badge-success">已完成</span></td><td><div class="progress" style="width:100px"><div class="progress-fill green" style="width:100%"></div></div></td></tr>
-              </tbody>
-            </table>
+          <div class="stat-card">
+            <div class="stat-icon green">📥</div>
+            <div class="stat-value">12</div>
+            <div class="stat-label">今日入库</div>
+            <div class="stat-change up">↑ 5 批</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">📤</div>
+            <div class="stat-value">8</div>
+            <div class="stat-label">今日出库</div>
+            <div class="stat-change down">↓ 2 批</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">⚠️</div>
+            <div class="stat-value">3</div>
+            <div class="stat-label">库存预警</div>
+            <div class="stat-change down">需关注</div>
           </div>
         </div>
-
-        <div class="card">
-          <div class="card-header">
-            <span class="card-title">实时通知</span>
-            <span class="badge badge-info">4 条新消息</span>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">待处理入库</span>
+              <a href="#" onclick="showPage('warehouse')" class="btn btn-sm btn-secondary">查看全部</a>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="table">
+                <thead><tr><th>物料编码</th><th>物料名称</th><th>数量</th><th>来源</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td class="mono">MAT-001</td><td>45# 圆钢 Φ50</td><td>200kg</td><td>采购PO2024060301</td><td><span class="badge badge-warning">待扫码</span></td></tr>
+                  <tr><td class="mono">MAT-002</td><td>不锈钢板 2mm</td><td>50kg</td><td>采购PO2024060302</td><td><span class="badge badge-info">扫码中</span></td></tr>
+                  <tr><td class="mono">MAT-003</td><td>铝合金棒 Φ25</td><td>100kg</td><td>采购PO2024060303</td><td><span class="badge badge-purple">待质检</span></td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <div class="card-body">
-            <div class="alert alert-warning" style="margin-bottom:12px">
-              <span class="alert-icon">⚠️</span>
-              <div>工单 WO2024060105 已逾期3天，请尽快处理</div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">库存预警</span>
+              <span class="badge badge-warning">3 条</span>
             </div>
-            <div class="alert alert-info" style="margin-bottom:12px">
-              <span class="alert-icon">📄</span>
-              <div>新报价单来自：深圳市XX机械有限公司</div>
+            <div class="card-body">
+              <div class="alert alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">⚠️</span>
+                <div>45# 圆钢 Φ50 库存不足，低于安全库存</div>
+              </div>
+              <div class="alert alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">⚠️</span>
+                <div>不锈钢板 2mm 已过期，建议优先使用</div>
+              </div>
+              <div class="alert alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">📋</span>
+                <div>本月出库领用次数已达 156 次</div>
+              </div>
             </div>
-            <div class="alert alert-success" style="margin-bottom:12px">
-              <span class="alert-icon">✅</span>
-              <div>采购订单 PO2024060201 已完成入库</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 品检员 看板 -->
+      <div id="dash-quality" class="dash-content" style="display:none">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">📥</div>
+            <div class="stat-value">8</div>
+            <div class="stat-label">待IQC检验</div>
+            <div class="stat-change">批次</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">🎯</div>
+            <div class="stat-value">3</div>
+            <div class="stat-label">待FAI确认</div>
+            <div class="stat-change">工单</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">📐</div>
+            <div class="stat-value">2</div>
+            <div class="stat-label">待CMM检测</div>
+            <div class="stat-change">工单</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">✅</div>
+            <div class="stat-value">28</div>
+            <div class="stat-label">本月合格</div>
+            <div class="stat-change up">98.5% 合格率</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">质检任务</span>
+              <a href="#" onclick="showPage('quality')" class="btn btn-sm btn-secondary">查看全部</a>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="table">
+                <thead><tr><th>类型</th><th>批次/工单</th><th>物料/产品</th><th>时间</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="badge badge-info">IQC</span></td><td class="mono">B2024060301</td><td>精密轴套 #A202</td><td>09:30</td><td><span class="badge badge-warning">待检验</span></td></tr>
+                  <tr><td><span class="badge badge-purple">FAI</span></td><td class="mono">WO2024060302</td><td>法兰盘 #B105</td><td>10:00</td><td><span class="badge badge-warning">待确认</span></td></tr>
+                  <tr><td><span class="badge badge-success">CMM</span></td><td class="mono">WO2024060301</td><td>齿轮箱体 #C308</td><td>14:00</td><td><span class="badge badge-info">已安排</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">最近报告</span>
+              <span class="badge badge-success">本月 28 份</span>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-success" style="margin-bottom:12px">
+                <span class="alert-icon">✅</span>
+                <div>批次 #B202 - 合格 (50件) - 检验员：张检</div>
+              </div>
+              <div class="alert alert-success" style="margin-bottom:12px">
+                <span class="alert-icon">✅</span>
+                <div>批次 #B201 - 合格 (100件) - 检验员：李检</div>
+              </div>
+              <div class="alert alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">⚠️</span>
+                <div>批次 #B199 - 让步接受 (2件) - 检验员：王检</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 财务 看板 -->
+      <div id="dash-finance" class="dash-content" style="display:none">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">¥</div>
+            <div class="stat-value">¥856,000</div>
+            <div class="stat-label">本月应收</div>
+            <div class="stat-change up">↑ 15.2%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon green">¥</div>
+            <div class="stat-value">¥523,000</div>
+            <div class="stat-label">本月应付</div>
+            <div class="stat-change">供应商款</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon orange">⏳</div>
+            <div class="stat-value">¥128,500</div>
+            <div class="stat-label">逾期应收</div>
+            <div class="stat-change down">↓ 3.2万</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon purple">💰</div>
+            <div class="stat-value">¥332,500</div>
+            <div class="stat-label">本月利润</div>
+            <div class="stat-change up">利润率 38.8%</div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">应收提醒</span>
+              <a href="#" onclick="showPage('finance')" class="btn btn-sm btn-secondary">查看全部</a>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="table">
+                <thead><tr><th>客户</th><th>金额</th><th>账期</th><th>逾期</th><th>状态</th></tr></thead>
+                <tbody>
+                  <tr><td>深圳市XX机械</td><td class="mono">¥35,000</td><td>2026-05-15</td><td><span class="badge badge-warning">18天</span></td><td><span class="badge badge-danger">逾期</span></td></tr>
+                  <tr><td>东莞YY精密</td><td class="mono">¥28,500</td><td>2026-05-20</td><td><span class="badge badge-warning">13天</span></td><td><span class="badge badge-danger">逾期</span></td></tr>
+                  <tr><td>佛山ZZ金属</td><td class="mono">¥65,000</td><td>2026-06-10</td><td>-</td><td><span class="badge badge-info">正常</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header">
+              <span class="card-title">财务动态</span>
+              <span class="badge badge-info">2 条</span>
+            </div>
+            <div class="card-body">
+              <div class="alert alert-success" style="margin-bottom:12px">
+                <span class="alert-icon">💵</span>
+                <div>已收款：深圳市XX机械 ¥50,000</div>
+              </div>
+              <div class="alert alert-warning" style="margin-bottom:12px">
+                <span class="alert-icon">📄</span>
+                <div>待付款：供应商A ¥28,000 (账期至6月5日)</div>
+              </div>
+              <div class="alert alert-info" style="margin-bottom:12px">
+                <span class="alert-icon">📊</span>
+                <div>本月工资已发放，共 ¥156,000</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1311,7 +1516,7 @@ textarea.form-control{resize:vertical;min-height:100px}
         <div class="form-group"><label>用户名 *</label><input type="text" class="form-control" placeholder="请输入用户名"></div>
         <div class="form-group"><label>姓名 *</label><input type="text" class="form-control" placeholder="请输入姓名"></div>
         <div class="form-group"><label>密码 *</label><input type="password" class="form-control" placeholder="请输入密码"></div>
-        <div class="form-group"><label>角色</label><select class="form-control"><option>管理员</option><option>生产主管</option><option>操作工</option><option>仓管员</option><option>品检员</option><option>财务</option></select></div>
+        <div class="form-group"><label>角色</label><select class="form-control"><option>管理员</option><option>生产主管</option><option>仓管员</option><option>品检员</option><option>财务</option></select></div>
         <div class="form-group"><label>部门</label><select class="form-control"><option>生产部</option><option>技术部</option><option>品质部</option><option>采购部</option><option>财务部</option></select></div>
         <div class="form-group"><label>手机</label><input type="tel" class="form-control" placeholder="请输入手机号"></div>
       </div>
@@ -1346,7 +1551,26 @@ function handleLogin(e){
   document.getElementById('userRole').textContent=roleNames[currentRole];
   document.getElementById('userAvatar').textContent=roleAvatars[currentRole];
   filterNavByRole();
+  renderDashboard(currentRole);
   showPage('dashboard');
+}
+
+function renderDashboard(role){
+  document.querySelectorAll('.dash-content').forEach(function(d){d.style.display='none'});
+  var dashMap={admin:'dash-admin',manager:'dash-admin',warehouse:'dash-warehouse',quality:'dash-quality',finance:'dash-finance'};
+  var titleMap={admin:'生产看板',manager:'生产看板',warehouse:'仓储看板',quality:'质检看板',finance:'财务看板'};
+  var welcomeMap={
+    admin:'<strong>欢迎使用CNC加工厂ERP系统</strong><br><span style="opacity:.8">本系统支持客户管理、报价订单、生产排产、车间执行、仓储物流、委外加工、财务人事等全流程管理。</span>',
+    manager:'<strong>欢迎回来，生产主管</strong><br><span style="opacity:.8">当前有 24 个工单执行中，5 个逾期提醒待处理。</span>',
+    warehouse:'<strong>欢迎回来，仓管员</strong><br><span style="opacity:.8">今日有 12 批物料待入库，3 个库存预警待处理。</span>',
+    quality:'<strong>欢迎回来，品检员</strong><br><span style="opacity:.8">当前有 8 批次待IQC检验，3 工单待FAI确认。</span>',
+    finance:'<strong>欢迎回来，财务</strong><br><span style="opacity:.8">本月应收 ¥856,000，应付 ¥523,000，逾期 ¥128,500。</span>'
+  };
+  var dashId=dashMap[role]||'dash-admin';
+  var dashEl=document.getElementById(dashId);
+  if(dashEl)dashEl.style.display='block';
+  document.getElementById('dashboardTitle').textContent=titleMap[role]||'首页看板';
+  document.getElementById('welcomeText').innerHTML=welcomeMap[role]||welcomeMap.admin;
 }
 
 function filterNavByRole(){
