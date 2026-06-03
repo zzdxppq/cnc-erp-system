@@ -69,13 +69,20 @@ body{padding-bottom:70px}
 /* Main Content */
 .main{padding:12px}
 
-/* Dashboard */
+/* Scan Button */
+.scan-btn{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,var(--nb),var(--np));border:4px solid rgba(0,212,255,.3);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;margin:0 auto 24px;box-shadow:0 0 30px rgba(0,212,255,.3)}
+.scan-btn:active{transform:scale(.95)}
+.scan-btn .icon{font-size:36px}
+.scan-btn .text{font-size:12px;color:var(--dbg);font-weight:600}
+
+/* Status Bar */
+.status-bar{position:sticky;top:0;z-index:50;padding:8px 12px;display:flex;justify-content:space-between;font-size:12px;color:var(--ts);background:var(--dbg)}
+
+/* Stats */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
-.stats .s{padding:14px;border-radius:12px}
-.stats .sv{font-size:24px;font-weight:700;display:block;margin:4px 0}
+.stats .s{padding:14px;border-radius:12px;text-align:center}
+.stats .sv{font-size:28px;font-weight:700;margin-bottom:4px}
 .stats .sc{font-size:11px;color:var(--ts)}
-.scan-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px}
-.scan-card{text-align:center;padding:16px 8px;border-radius:12px;cursor:pointer}
 
 /* List Items */
 .list-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--dbd)}
@@ -105,18 +112,19 @@ body{padding-bottom:70px}
 /* Section Title */
 .st{font-size:12px;color:var(--ts);padding:0 12px;margin-bottom:8px}
 
-/* Status Bar */
-.status-bar{position:sticky;top:0;z-index:50;padding:8px 12px;display:flex;justify-content:space-between;font-size:12px;color:var(--ts);background:var(--dbg)}
-
-/* Quick Actions */
-.quick-actions{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px}
-.qa-item{text-align:center;padding:12px;border-radius:12px;cursor:pointer}
-.qa-item .icon{font-size:24px;margin-bottom:4px}
-.qa-item p{font-size:11px}
-
 /* Progress Bar */
 .prog{height:6px;background:var(--dbd);border-radius:3px;margin-top:8px;overflow:hidden}
 .prog-fill{height:100%;background:linear-gradient(90deg,var(--nb),var(--np));border-radius:3px}
+
+/* Steps */
+.steps{display:flex;align-items:center;margin-bottom:16px}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--dbd);color:var(--ts);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
+.step.active .step-num{background:var(--nb);color:var(--dbg)}
+.step.done .step-num{background:var(--sg);color:#fff}
+.step-l{font-size:10px;color:var(--ts)}
+.step.active .step-l{color:var(--nb);font-weight:500}
+.step-line{flex:1;height:2px;background:var(--dbd);margin:0 4px}
 
 /* Detail Card */
 .detail-card{border-radius:12px;overflow:hidden;margin-bottom:12px}
@@ -131,45 +139,39 @@ body{padding-bottom:70px}
 .page{display:none}
 .page.show{display:block}
 
-/* Steps */
-.steps{display:flex;align-items:center;margin-bottom:16px}
-.step{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
-.step-num{width:28px;height:28px;border-radius:50%;background:var(--dbd);color:var(--ts);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600}
-.step.active .step-num{background:var(--nb);color:var(--dbg)}
-.step.done .step-num{background:var(--sg);color:#fff}
-.step-l{font-size:10px;color:var(--ts)}
-.step.active .step-l{color:var(--nb);font-weight:500}
-.step-line{flex:1;height:2px;background:var(--dbd);margin:0 4px}
+/* Alert */
+.alert{display:flex;gap:10px;padding:12px;background:var(--dcd);border-radius:10px;border-left:3px solid var(--nb);margin-bottom:12px}
+.alert-icon{font-size:20px}
+.alert-text{flex:1;font-size:13px}
+.alert.warning{border-left-color:var(--wr)}
+.alert.success{border-left-color:var(--sg)}
+
+/* Notification Badge */
+.notif-badge{position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:var(--er);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center}
+
+/* Work order card */
+.wo-card{background:var(--dcd);border:1px solid var(--dbd);border-radius:12px;padding:16px;margin-bottom:12px}
+.wo-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.wo-id{font-family:monospace;font-size:16px;font-weight:600;color:var(--nb)}
+.wo-body{display:flex;flex-direction:column;gap:8px}
+.wo-row{display:flex;justify-content:space-between;font-size:13px}
+.wo-row .label{color:var(--ts)}
+.wo-progress{margin-top:8px}
+.wo-progress .prog{margin-top:4px}
 </style>
 </head>
 <body>
 
 <!-- Role Selection Page -->
 <div id="rolePage" class="page show">
-  <h2>选择您的角色</h2>
-  <p>不同角色看到不同的功能界面</p>
+  <h2>选择您的岗位</h2>
+  <p>移动端面向一线人员，提供扫码报工、仓储、质检等功能</p>
   <div class="role-list">
-    <div class="role-item" onclick="selectRole('admin')">
-      <div class="icon" style="background:linear-gradient(135deg,var(--np),var(--nb))">⚙️</div>
-      <div class="info">
-        <div class="name">管理员</div>
-        <div class="desc">系统管理、用户权限、工作流配置</div>
-      </div>
-      <span class="arrow">›</span>
-    </div>
-    <div class="role-item" onclick="selectRole('manager')">
-      <div class="icon" style="background:rgba(0,212,255,.2)">📊</div>
-      <div class="info">
-        <div class="name">生产主管</div>
-        <div class="desc">生产排产、工单跟踪、车间管理</div>
-      </div>
-      <span class="arrow">›</span>
-    </div>
     <div class="role-item" onclick="selectRole('worker')">
-      <div class="icon" style="background:rgba(168,85,247,.2)">🔧</div>
+      <div class="icon" style="background:rgba(0,212,255,.2)">🔧</div>
       <div class="info">
-        <div class="name">操作工</div>
-        <div class="desc">扫码开工、报工、查看工单</div>
+        <div class="name">车间操作工</div>
+        <div class="desc">扫码开工、扫码报工、扫码过站</div>
       </div>
       <span class="arrow">›</span>
     </div>
@@ -177,15 +179,15 @@ body{padding-bottom:70px}
       <div class="icon" style="background:rgba(245,158,11,.2)">📦</div>
       <div class="info">
         <div class="name">仓管员</div>
-        <div class="desc">扫码入库、出库、库存管理</div>
+        <div class="desc">扫码入库、扫码出库、库存查询</div>
       </div>
       <span class="arrow">›</span>
     </div>
-    <div class="role-item" onclick="selectRole('finance')">
-      <div class="icon" style="background:rgba(16,185,129,.2)">💰</div>
+    <div class="role-item" onclick="selectRole('quality')">
+      <div class="icon" style="background:rgba(168,85,247,.2)">✅</div>
       <div class="info">
-        <div class="name">财务</div>
-        <div class="desc">应收应付、成本核算、工资</div>
+        <div class="name">品检员</div>
+        <div class="desc">来料检验、FA首件、三次元检测</div>
       </div>
       <span class="arrow">›</span>
     </div>
@@ -195,350 +197,544 @@ body{padding-bottom:70px}
 <!-- Login Page -->
 <div id="login">
   <h2 id="loginTitle">登录</h2>
-  <div class="role-tag"><span id="roleTag" class="badge bi">管理员</span></div>
+  <div class="role-tag"><span id="roleTag" class="badge bi">车间操作工</span></div>
   <form onsubmit="handleLogin(event)">
-    <input type="text" class="input" id="uname" placeholder="请输入用户名" required>
+    <input type="text" class="input" id="uname" placeholder="请输入工号" required>
     <input type="password" class="input" placeholder="请输入密码" required>
     <button type="submit" class="nbtn">登 录</button>
   </form>
-  <p style="margin-top:16px;font-size:11px;color:var(--ts);text-align:center">演示账号: admin / admin123</p>
+  <p style="margin-top:16px;font-size:11px;color:var(--ts);text-align:center">演示账号: WO001 / 123456</p>
 </div>
 
 <!-- Main App -->
 <div id="main" class="page">
 
-  <!-- ============ ADMIN PAGES ============ -->
-  <div id="page-admin-dashboard" class="page">
-    <div class="status-bar">
-      <span>2026年6月3日</span>
-      <span>星期三</span>
-    </div>
-    <div class="header show">
-      <h1>⚙️ 系统管理</h1>
-    </div>
-    <div class="main" style="margin-top:60px">
-      <div class="stats">
-        <div class="s g">
-          <span class="sv" style="font-size:20px;background:linear-gradient(135deg,var(--nb),var(--np));-webkit-background-clip:text;-webkit-text-fill-color:transparent">12</span>
-          <span class="sc">用户总数</span>
-        </div>
-        <div class="s g">
-          <span class="sv" style="color:var(--sg)">6</span>
-          <span class="sc">在线用户</span>
-        </div>
-        <div class="s g">
-          <span class="sv">5</span>
-          <span class="sc">角色数</span>
-        </div>
-        <div class="s g">
-          <span class="sv" style="color:var(--nb)">8</span>
-          <span class="sc">审批流</span>
-        </div>
-      </div>
-      <p class="st">系统状态</p>
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">系统运行正常</div><div class="meta">最后检查: 1分钟前</div></div><span class="badge bg">正常</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(0,212,255,.2)">💾</div><div class="info"><div class="title">数据库连接</div><div class="meta">响应: 12ms</div></div><span class="badge bi">良好</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(168,85,247,.2)">☁️</div><div class="info"><div class="title">Nacos 服务</div><div class="meta">3个服务注册中</div></div><span class="badge bp">运行中</span></div>
-      </div>
-      <p class="st">快捷操作</p>
-      <div class="g">
-        <div class="list-item" onclick="showSubPage('user-list')"><div class="icon" style="background:rgba(0,212,255,.2)">👥</div><div class="info"><div class="title">用户管理</div><div class="meta">12个用户</div></div><span style="color:var(--ts)">›</span></div>
-        <div class="list-item" onclick="showSubPage('role-list')"><div class="icon" style="background:rgba(168,85,247,.2)">🔐</div><div class="info"><div class="title">角色权限</div><div class="meta">5个角色</div></div><span style="color:var(--ts)">›</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">⚙️</div><div class="info"><div class="title">系统设置</div><div class="meta">基础配置</div></div><span style="color:var(--ts)">›</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">📋</div><div class="info"><div class="title">工作流配置</div><div class="meta">审批流管理</div></div><span style="color:var(--ts)">›</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="page-admin-user-list" class="page">
-    <div class="header show back" onclick="showPage('admin-dashboard')">
-      <h1>👥 用户管理</h1>
-    </div>
-    <div class="main" style="margin-top:50px">
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:linear-gradient(135deg,var(--nb),var(--np))">管</div><div class="info"><div class="title">admin</div><div class="meta">管理员 · 系统部</div></div><span class="badge bp">启用</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">生</div><div class="info"><div class="title">zhangsan</div><div class="meta">生产主管 · 生产部</div></div><span class="badge bg">启用</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(168,85,247,.2)">工</div><div class="info"><div class="title">lisi</div><div class="meta">工程师 · 技术部</div></div><span class="badge bg">启用</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(0,212,255,.2)">操</div><div class="info"><div class="title">wangwu</div><div class="meta">操作工 · 生产部</div></div><span class="badge bg">启用</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">仓</div><div class="info"><div class="title">zhaoliu</div><div class="meta">仓管员 · 仓储部</div></div><span class="badge bg">启用</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="page-admin-role-list" class="page">
-    <div class="header show back" onclick="showPage('admin-dashboard')">
-      <h1>🔐 角色权限</h1>
-    </div>
-    <div class="main" style="margin-top:50px">
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:linear-gradient(135deg,var(--np),var(--nb))">⚙️</div><div class="info"><div class="title">管理员</div><div class="meta">全部权限</div></div><span class="badge bp">全部</span></div>
-      </div>
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">📊</div><div class="info"><div class="title">生产主管</div><div class="meta">生产管理、订单跟踪</div></div><span class="badge bw">生产</span></div>
-      </div>
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(168,85,247,.2)">🔧</div><div class="info"><div class="title">操作工</div><div class="meta">扫码开工、报工</div></div><span class="badge bi">车间</span></div>
-      </div>
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">📦</div><div class="info"><div class="title">仓管员</div><div class="meta">仓储、扫码出入库</div></div><span class="badge bw">仓储</span></div>
-      </div>
-      <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">💰</div><div class="info"><div class="title">财务</div><div class="meta">应收应付、成本</div></div><span class="badge bg">财务</span></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ MANAGER PAGES ============ -->
-  <div id="page-manager-dashboard" class="page">
-    <div class="status-bar">
-      <span>2026年6月3日</span>
-      <span>星期三</span>
-    </div>
-    <div class="header show">
-      <h1>📊 生产看板</h1>
-      <span class="actions">🔔</span>
-    </div>
-    <div class="main" style="margin-top:60px">
-      <div class="stats">
-        <div class="s g">
-          <span class="sv" style="background:linear-gradient(135deg,var(--nb),var(--np));-webkit-background-clip:text;-webkit-text-fill-color:transparent">¥128,500</span>
-          <span class="sc">今日产值</span>
-        </div>
-        <div class="s g">
-          <span class="sv">24</span>
-          <span class="sc">生产工单</span>
-        </div>
-        <div class="s g">
-          <span class="sv" style="color:var(--wr)">5</span>
-          <span class="sc">逾期提醒</span>
-        </div>
-        <div class="s g">
-          <span class="sv">18天</span>
-          <span class="sc">库存周转</span>
-        </div>
-      </div>
-      <p class="st">工单动态</p>
-      <div class="g">
-        <div class="list-item" onclick="showSubPage('wo-detail')"><div class="icon">🔧</div><div class="info"><div class="title">WO2024060301</div><div class="meta">精密轴套 · CNC-01 · 65%</div><div class="prog"><div class="prog-fill" style="width:65%"></div></div></div><span class="badge bi">加工中</span></div>
-        <div class="list-item"><div class="icon">📋</div><div class="info"><div class="title">WO2024060302</div><div class="meta">法兰盘 · CNC-03 · 0%</div><div class="prog"><div class="prog-fill" style="width:0%"></div></div></div><span class="badge bp">待加工</span></div>
-        <div class="list-item"><div class="icon">✅</div><div class="info"><div class="title">WO2024060303</div><div class="meta">齿轮箱体 · CNC-02 · 100%</div><div class="prog"><div class="prog-fill" style="width:100%"></div></div></div><span class="badge bg">已完成</span></div>
-      </div>
-      <p class="st">通知中心</p>
-      <div class="g notices">
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">⚠️</div><div class="info"><div class="title">工单 WO2024060105 已逾期3天</div></div></div>
-        <div class="list-item"><div class="icon" style="background:rgba(0,212,255,.2)">📄</div><div class="info"><div class="title">新报价单: 深圳市XX机械</div></div></div>
-        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">采购订单 PO2024060201 已入库</div></div></div>
-      </div>
-    </div>
-  </div>
-
-  <div id="page-manager-wo-detail" class="page">
-    <div class="header show back" onclick="showPage('manager-dashboard')">
-      <h1>工单详情</h1>
-    </div>
-    <div class="main" style="margin-top:50px">
-      <div class="g">
-        <div style="text-align:center;padding:16px 0">
-          <div class="mono" style="font-size:20px;margin-bottom:8px">WO2024060301</div>
-          <span class="badge bi">加工中</span>
-        </div>
-        <div class="dc-row"><span class="label">产品</span><span class="value">精密轴套 #A202</span></div>
-        <div class="dc-row"><span class="label">数量</span><span class="value">100件</span></div>
-        <div class="dc-row"><span class="label">机台</span><span class="value">CNC-01</span></div>
-        <div class="dc-row"><span class="label">开工时间</span><span class="value">2026-06-03 09:00</span></div>
-        <div class="dc-row"><span class="label">预计完工</span><span class="value">2026-06-03 18:00</span></div>
-        <div class="dc-row"><span class="label">完工数量</span><span class="value">65件</span></div>
-        <div class="dc-row"><span class="label">合格率</span><span class="value" style="color:var(--sg)">98.5%</span></div>
-      </div>
-      <p class="st">工序进度</p>
-      <div class="g">
-        <div class="steps">
-          <div class="step done"><div class="step-num">✓</div><div class="step-l">备料</div></div>
-          <div class="step-line"></div>
-          <div class="step done"><div class="step-num">✓</div><div class="step-l">粗车</div></div>
-          <div class="step-line"></div>
-          <div class="step active"><div class="step-num">3</div><div class="step-l">精车</div></div>
-          <div class="step-line"></div>
-          <div class="step"><div class="step-num">4</div><div class="step-l">检验</div></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="page-manager-orders" class="page">
-    <div class="header show">
-      <h1>📋 订单管理</h1>
-    </div>
-    <div class="tabs">
-      <button class="tab active">全部</button>
-      <button class="tab">生产中</button>
-      <button class="tab">已发货</button>
-    </div>
-    <div class="main" style="margin-top:80px">
-      <div class="g">
-        <div class="list-item"><div class="icon">📦</div><div class="info"><div class="title">SO2024060301</div><div class="meta">精密轴套 · 100件 · ¥15,800</div></div><div class="right"><span class="badge bi">生产中</span></div></div>
-        <div class="list-item"><div class="icon">📦</div><div class="info"><div class="title">SO2024060201</div><div class="meta">法兰盘 · 50件 · ¥8,500</div></div><div class="right"><span class="badge bw">已发货</span></div></div>
-        <div class="list-item"><div class="icon">📦</div><div class="info"><div class="title">SO2024060101</div><div class="meta">齿轮箱体 · 30件 · ¥12,300</div></div><div class="right"><span class="badge bg">已完成</span></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ============ WORKER PAGES ============ -->
-  <div id="page-worker-dashboard" class="page">
+  <!-- ============ WORKER PAGES (车间操作工) ============ -->
+  <div id="page-worker-home" class="page">
     <div class="status-bar">
       <span>2026年6月3日</span>
       <span>星期三</span>
     </div>
     <div class="header show">
       <h1>🔧 车间执行</h1>
+      <span class="actions" style="position:relative">🔔<span class="notif-badge">3</span></span>
     </div>
     <div class="main" style="margin-top:60px">
-      <div class="scan-cards">
-        <div class="scan-card g" onclick="scan('start')">
-          <div class="si">📱</div>
-          <h4 style="font-size:13px;margin-bottom:4px">扫码开工</h4>
-          <p style="font-size:11px;color:var(--ts)">开始加工</p>
+      <!-- Scan Button -->
+      <div style="text-align:center;padding:20px 0">
+        <div class="scan-btn" onclick="openScan()">
+          <span class="icon">📷</span>
+          <span class="text">扫码</span>
         </div>
-        <div class="scan-card g" onclick="scan('report')">
-          <div class="si">📝</div>
-          <h4 style="font-size:13px;margin-bottom:4px">扫码报工</h4>
-          <p style="font-size:11px;color:var(--ts)">录入产量</p>
-        </div>
-        <div class="scan-card g" onclick="scan('transfer')">
-          <div class="si">🔄</div>
-          <h4 style="font-size:13px;margin-bottom:4px">扫码过站</h4>
-          <p style="font-size:11px;color:var(--ts)">物料流转</p>
-        </div>
+        <p style="color:var(--ts);font-size:13px">扫描工单条码开始工作</p>
       </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <button class="nbtn" style="flex:1" onclick="scanAction('start')">📱 扫码开工</button>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="nbtn-outline" style="flex:1" onclick="scanAction('report')">📝 扫码报工</button>
+        <button class="nbtn-outline" style="flex:1" onclick="scanAction('transfer')">🔄 扫码过站</button>
+      </div>
+
       <p class="st">今日工单</p>
       <div class="g">
-        <div class="list-item">
-          <div class="icon">🔧</div>
-          <div class="info">
-            <div class="title">WO2024060301</div>
-            <div class="meta">精密轴套 · 100件 · CNC-01</div>
-          </div>
-          <button class="nbtn-outline nbtn-sm" onclick="scan('report')">报工</button>
-        </div>
-        <div class="list-item">
-          <div class="icon">📋</div>
-          <div class="info">
-            <div class="title">WO2024060302</div>
-            <div class="meta">法兰盘 · 80件 · CNC-03</div>
-          </div>
-          <button class="nbtn-outline nbtn-sm" onclick="scan('start')">开工</button>
-        </div>
+        <div class="list-item"><div class="icon">🔧</div><div class="info"><div class="title">WO2024060301</div><div class="meta">精密轴套 · CNC-01 · 65/100件</div></div><span class="badge bi">进行中</span></div>
+        <div class="list-item"><div class="icon">📋</div><div class="info"><div class="title">WO2024060302</div><div class="meta">法兰盘 · CNC-03 · 待开工</div></div><span class="badge bp">待加工</span></div>
       </div>
-      <p class="st">车间统计</p>
-      <div class="stats">
-        <div class="s g" style="text-align:center"><span class="sv" style="font-size:28px">12</span><span class="sc">今日开工</span></div>
-        <div class="s g" style="text-align:center"><span class="sv" style="font-size:28px;color:var(--sg)">8</span><span class="sc">已完成</span></div>
-        <div class="s g" style="text-align:center"><span class="sv" style="font-size:28px;background:linear-gradient(135deg,var(--nb),var(--np));-webkit-background-clip:text;-webkit-text-fill-color:transparent">156</span><span class="sc">总产量</span></div>
-        <div class="s g" style="text-align:center"><span class="sv" style="font-size:28px;color:var(--wr)">3</span><span class="sc">逾期</span></div>
+
+      <p class="st">消息通知</p>
+      <div class="g">
+        <div class="alert warning"><span class="alert-icon">⚠️</span><div class="alert-text"><strong>工单 WO2024060105 已逾期3天</strong><br><span style="color:var(--ts);font-size:12px">请尽快完成加工</span></div></div>
+        <div class="alert"><span class="alert-icon">ℹ️</span><div class="alert-text"><strong>新工单已下发</strong><br><span style="color:var(--ts);font-size:12px">WO2024060302 法兰盘 80件</span></div></div>
       </div>
     </div>
   </div>
 
-  <!-- ============ WAREHOUSE PAGES ============ -->
-  <div id="page-warehouse-dashboard" class="page">
+  <div id="page-worker-report" class="page">
+    <div class="header show back" onclick="showPage('worker-home')">
+      <h1>📝 扫码报工</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <div class="wo-card">
+        <div class="wo-header">
+          <span class="wo-id">WO2024060301</span>
+          <span class="badge bi">加工中</span>
+        </div>
+        <div class="wo-body">
+          <div class="wo-row"><span class="label">产品</span><span>精密轴套 #A202</span></div>
+          <div class="wo-row"><span class="label">机台</span><span>CNC-01</span></div>
+          <div class="wo-row"><span class="label">当前工序</span><span>精车</span></div>
+          <div class="wo-row"><span class="label">计划数量</span><span>100件</span></div>
+          <div class="wo-row"><span class="label">已完成</span><span style="color:var(--sg)">65件</span></div>
+          <div class="wo-row"><span class="label">合格率</span><span>98.5%</span></div>
+        </div>
+        <div class="wo-progress">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--ts);margin-bottom:4px">
+            <span>完成进度</span><span>65%</span>
+          </div>
+          <div class="prog"><div class="prog-fill" style="width:65%"></div></div>
+        </div>
+      </div>
+
+      <p class="st">报工信息</p>
+      <div class="g">
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">本次报工数量 *</label>
+          <input type="number" class="input" placeholder="请输入数量" value="35">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">质量状态 *</label>
+          <div style="display:flex;gap:8px">
+            <button class="nbtn-outline" style="flex:1;border-color:var(--sg);color:var(--sg)" onclick="this.style.borderColor='var(--nb)';this.style.color='var(--nb)'">✅ 合格</button>
+            <button class="nbtn-outline" style="flex:1" onclick="this.style.borderColor='var(--wr)';this.style.color='var(--wr)'">⚠️ 返工</button>
+            <button class="nbtn-outline" style="flex:1" onclick="this.style.borderColor='var(--er)';this.style.color='var(--er)'">❌ 报废</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">备注</label>
+          <input type="text" class="input" placeholder="选填">
+        </div>
+      </div>
+      <button class="nbtn" onclick="submitReport()">确认报工</button>
+    </div>
+  </div>
+
+  <div id="page-worker-history" class="page">
+    <div class="header show">
+      <h1>📜 报工记录</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <div class="tabs">
+        <button class="tab active">今日</button>
+        <button class="tab">本周</button>
+        <button class="tab">本月</button>
+      </div>
+      <div class="g">
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">WO2024060301</span>
+            <span class="badge bg">已完成</span>
+          </div>
+          <div class="wo-row"><span class="label">报工数量</span><span>35件</span></div>
+          <div class="wo-row"><span class="label">合格</span><span style="color:var(--sg)">34件</span></div>
+          <div class="wo-row"><span class="label">报废</span><span>1件</span></div>
+          <div class="wo-row"><span class="label">报工时间</span><span>14:32:15</span></div>
+        </div>
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">WO2024060301</span>
+            <span class="badge bi">加工中</span>
+          </div>
+          <div class="wo-row"><span class="label">报工数量</span><span>30件</span></div>
+          <div class="wo-row"><span class="label">合格</span><span style="color:var(--sg)">30件</span></div>
+          <div class="wo-row"><span class="label">报工时间</span><span>10:15:42</span></div>
+        </div>
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">WO2024053001</span>
+            <span class="badge bg">已完成</span>
+          </div>
+          <div class="wo-row"><span class="label">报工数量</span><span>40件</span></div>
+          <div class="wo-row"><span class="label">合格</span><span style="color:var(--sg)">40件</span></div>
+          <div class="wo-row"><span class="label">报工时间</span><span>2026-05-30 16:45:00</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WAREHOUSE PAGES (仓管员) ============ -->
+  <div id="page-warehouse-home" class="page">
     <div class="status-bar">
       <span>2026年6月3日</span>
       <span>星期三</span>
     </div>
     <div class="header show">
       <h1>📦 仓储管理</h1>
+      <span class="actions" style="position:relative">🔔<span class="notif-badge">2</span></span>
     </div>
     <div class="main" style="margin-top:60px">
-      <div class="scan-cards">
-        <div class="scan-card g" onclick="scan('in')">
-          <div class="si">📥</div>
-          <h4 style="font-size:13px;margin-bottom:4px">扫码入库</h4>
-          <p style="font-size:11px;color:var(--ts)">采购/生产</p>
+      <!-- Scan Button -->
+      <div style="text-align:center;padding:20px 0">
+        <div class="scan-btn" onclick="openScan()">
+          <span class="icon">📷</span>
+          <span class="text">扫码</span>
         </div>
-        <div class="scan-card g" onclick="scan('out')">
-          <div class="si">📤</div>
-          <h4 style="font-size:13px;margin-bottom:4px">扫码出库</h4>
-          <p style="font-size:11px;color:var(--ts)">领料/发货</p>
-        </div>
-        <div class="scan-card g" onclick="scan('move')">
-          <div class="si">🔄</div>
-          <h4 style="font-size:13px;margin-bottom:4px">库位调拨</h4>
-          <p style="font-size:11px;color:var(--ts)">移库</p>
-        </div>
+        <p style="color:var(--ts);font-size:13px">扫描物料或库位条码</p>
       </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;gap:12px;margin-bottom:16px">
+        <button class="nbtn" style="flex:1" onclick="scanAction('in')">📥 扫码入库</button>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="nbtn-outline" style="flex:1" onclick="scanAction('out')">📤 扫码出库</button>
+        <button class="nbtn-outline" style="flex:1" onclick="showSubPage('stock-query')">🔍 库存查询</button>
+      </div>
+
       <p class="st">库存预警</p>
       <div class="g">
-        <div class="list-item"><div class="icon">🥇</div><div class="info"><div class="title">45# 圆钢 Φ20</div><div class="meta">原料仓 · 安全: 200kg</div></div><div class="right"><span class="price">500kg</span><span class="badge bg">正常</span></div></div>
-        <div class="list-item"><div class="icon">🥈</div><div class="info"><div class="title">不锈钢板 304</div><div class="meta">原料仓 · 安全: 100张</div></div><div class="right"><span class="price" style="color:var(--wr)">120张</span><span class="badge bw">偏低</span></div></div>
-        <div class="list-item"><div class="icon">🏆</div><div class="info"><div class="title">精密轴套 #A202</div><div class="meta">成品仓</div></div><div class="right"><span class="price">280件</span><span class="badge bg">正常</span></div></div>
+        <div class="list-item"><div class="icon" style="background:rgba(239,68,68,.2)">⚠️</div><div class="info"><div class="title">法兰盘 #B105</div><div class="meta">库存15件 · 安全库存30件</div></div><span class="badge be">紧急</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">⚠️</div><div class="info"><div class="title">不锈钢板 304</div><div class="meta">库存120张 · 安全库存100张</div></div><span class="badge bw">偏低</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">45# 圆钢 Φ20</div><div class="meta">库存500kg · 安全库存200kg</div></div><span class="badge bg">正常</span></div>
       </div>
-      <p class="st">快捷功能</p>
-      <div class="quick-actions">
-        <div class="qa-item g" onclick="showSubPage('stock-query')"><div class="icon">🔍</div><p>库存查询</p></div>
-        <div class="qa-item g" onclick="showSubPage('stock-in')"><div class="icon">📥</div><p>入库单</p></div>
-        <div class="qa-item g" onclick="showSubPage('stock-out')"><div class="icon">📤</div><p>出库单</p></div>
-        <div class="qa-item g"><div class="icon">📊</div><p>盘点</p></div>
+
+      <p class="st">待处理任务</p>
+      <div class="g">
+        <div class="alert"><span class="alert-icon">📋</span><div class="alert-text"><strong>采购入库待确认</strong><br><span style="color:var(--ts);font-size:12px">PO2024060301 · 45# 圆钢 200kg</span></div></div>
+        <div class="alert"><span class="alert-icon">📋</span><div class="alert-text"><strong>领料申请</strong><br><span style="color:var(--ts);font-size:12px">WO2024060301 · 精密轴套物料</span></div></div>
       </div>
     </div>
   </div>
 
+  <div id="page-warehouse-stock-in" class="page">
+    <div class="header show back" onclick="showPage('warehouse-home')">
+      <h1>📥 扫码入库</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <div class="scan-btn" style="margin-bottom:20px" onclick="simulateScan('in')">
+        <span class="icon">📷</span>
+        <span class="text">扫描物料</span>
+      </div>
+
+      <div class="g" id="stockInForm" style="display:none">
+        <div class="dc-row"><span class="label">物料编码</span><span class="value mono">MAT-001</span></div>
+        <div class="dc-row"><span class="label">物料名称</span><span class="value">45# 圆钢 Φ20mm</span></div>
+        <div class="dc-row"><span class="label">供应商</span><span class="value">杭州钢铁集团</span></div>
+        <div class="dc-row"><span class="label">采购单号</span><span class="value mono">PO2024060301</span></div>
+      </div>
+
+      <p class="st">入库信息</p>
+      <div class="g">
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">入库数量 *</label>
+          <input type="number" class="input" placeholder="请输入数量" value="200">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">单位</label>
+          <select class="input">
+            <option>kg</option>
+            <option>件</option>
+            <option>张</option>
+            <option>米</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">库位 *</label>
+          <input type="text" class="input" placeholder="扫描库位条码" value="A-01-03">
+        </div>
+        <div class="form-group">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">备注</label>
+          <input type="text" class="input" placeholder="选填">
+        </div>
+      </div>
+      <button class="nbtn" onclick="confirmStockIn()">确认入库</button>
+    </div>
+  </div>
+
+  <div id="page-warehouse-stock-out" class="page">
+    <div class="header show back" onclick="showPage('warehouse-home')">
+      <h1>📤 扫码出库</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <div class="scan-btn" style="margin-bottom:20px" onclick="simulateScan('out')">
+        <span class="icon">📷</span>
+        <span class="text">扫描物料</span>
+      </div>
+
+      <div class="g" id="stockOutForm" style="display:none">
+        <div class="dc-row"><span class="label">物料编码</span><span class="value mono">MAT-003</span></div>
+        <div class="dc-row"><span class="label">物料名称</span><span class="value">精密轴套 #A202</span></div>
+        <div class="dc-row"><span class="label">库存数量</span><span class="value">280件</span></div>
+        <div class="dc-row"><span class="label">工单号</span><span class="value mono">WO2024060301</span></div>
+      </div>
+
+      <p class="st">出库信息</p>
+      <div class="g">
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">出库数量 *</label>
+          <input type="number" class="input" placeholder="请输入数量" value="50">
+        </div>
+        <div class="form-group" style="margin-bottom:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">领用人</label>
+          <input type="text" class="input" placeholder="请输入工号" value="张三">
+        </div>
+        <div class="form-group">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">用途</label>
+          <select class="input">
+            <option>生产领料</option>
+            <option>样品领用</option>
+            <option>其他</option>
+          </select>
+        </div>
+      </div>
+      <button class="nbtn" onclick="confirmStockOut()">确认出库</button>
+    </div>
+  </div>
+
   <div id="page-warehouse-stock-query" class="page">
-    <div class="header show back" onclick="showPage('warehouse-dashboard')">
+    <div class="header show back" onclick="showPage('warehouse-home')">
       <h1>🔍 库存查询</h1>
     </div>
     <div class="main" style="margin-top:50px">
       <div style="padding:12px">
         <input type="text" class="input" placeholder="🔍 搜索物料编码、名称...">
       </div>
+      <p class="st">搜索结果</p>
       <div class="g">
-        <div class="list-item"><div class="icon">🥇</div><div class="info"><div class="title">MAT-001 · 45# 圆钢 Φ20mm</div><div class="meta">原料仓 · 500kg · ¥8.5/kg</div></div><span class="badge bg">有货</span></div>
-        <div class="list-item"><div class="icon">🥈</div><div class="info"><div class="title">MAT-002 · 不锈钢板 304 3mm</div><div class="meta">原料仓 · 120张 · ¥280/张</div></div><span class="badge bw">偏低</span></div>
-        <div class="list-item"><div class="icon">🏆</div><div class="info"><div class="title">MAT-003 · 精密轴套 #A202</div><div class="meta">成品仓 · 280件 · ¥158/件</div></div><span class="badge bg">有货</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(0,212,255,.2)">🥇</div><div class="info"><div class="title">MAT-001 · 45# 圆钢 Φ20mm</div><div class="meta">原料仓 · A-01-03 · 500kg</div></div><span class="badge bg">有货</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">🥈</div><div class="info"><div class="title">MAT-002 · 不锈钢板 304 3mm</div><div class="meta">原料仓 · A-02-01 · 120张</div></div><span class="badge bw">偏低</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(168,85,247,.2)">🏆</div><div class="info"><div class="title">MAT-003 · 精密轴套 #A202</div><div class="meta">成品仓 · B-01-02 · 280件</div></div><span class="badge bg">有货</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(239,68,68,.2)">⚠️</div><div class="info"><div class="title">MAT-004 · 法兰盘 #B105</div><div class="meta">成品仓 · B-01-05 · 15件</div></div><span class="badge be">紧急</span></div>
       </div>
     </div>
   </div>
 
-  <!-- ============ FINANCE PAGES ============ -->
-  <div id="page-finance-dashboard" class="page">
+  <div id="page-warehouse-record" class="page">
+    <div class="header show">
+      <h1>📋 出入库记录</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <div class="tabs">
+        <button class="tab active">入库</button>
+        <button class="tab">出库</button>
+      </div>
+      <div class="g">
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">IN2024060301</span>
+            <span class="badge bg">已入库</span>
+          </div>
+          <div class="wo-row"><span class="label">物料</span><span>45# 圆钢 Φ20mm</span></div>
+          <div class="wo-row"><span class="label">数量</span><span style="color:var(--sg)">+200kg</span></div>
+          <div class="wo-row"><span class="label">库位</span><span>A-01-03</span></div>
+          <div class="wo-row"><span class="label">时间</span><span>2026-06-03 09:15:32</span></div>
+        </div>
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">OUT2024060201</span>
+            <span class="badge be">已出库</span>
+          </div>
+          <div class="wo-row"><span class="label">物料</span><span>精密轴套 #A202</span></div>
+          <div class="wo-row"><span class="label">数量</span><span style="color:var(--er)">-50件</span></div>
+          <div class="wo-row"><span class="label">工单</span><span>WO2024060201</span></div>
+          <div class="wo-row"><span class="label">时间</span><span>2026-06-02 14:22:18</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ QUALITY PAGES (品检员) ============ -->
+  <div id="page-quality-home" class="page">
     <div class="status-bar">
       <span>2026年6月3日</span>
       <span>星期三</span>
     </div>
     <div class="header show">
-      <h1>💰 财务管理</h1>
+      <h1>✅ 品质管理</h1>
+      <span class="actions" style="position:relative">🔔<span class="notif-badge">1</span></span>
     </div>
     <div class="main" style="margin-top:60px">
+      <p class="st">质检任务</p>
+      <div class="g">
+        <div class="list-item" onclick="showSubPage('iqc')"><div class="icon" style="background:rgba(0,212,255,.2)">📥</div><div class="info"><div class="title">来料检验 (IQC)</div><div class="meta">待检验 3 批次</div></div><span style="color:var(--ts)">›</span></div>
+        <div class="list-item" onclick="showSubPage('fai')"><div class="icon" style="background:rgba(168,85,247,.2)">🎯</div><div class="info"><div class="title">FA首件确认</div><div class="meta">待检验 1 工单</div></div><span style="color:var(--ts)">›</span></div>
+        <div class="list-item" onclick="showSubPage('cmm')"><div class="icon" style="background:rgba(245,158,11,.2)">📐</div><div class="info"><div class="title">三次元检测 (CMM)</div><div class="meta">待检测 2 工单</div></div><span style="color:var(--ts)">›</span></div>
+        <div class="list-item" onclick="showSubPage('report')"><div class="icon" style="background:rgba(16,185,129,.2)">📊</div><div class="info"><div class="title">质检报告</div><div class="meta">本月报告 28 份</div></div><span style="color:var(--ts)">›</span></div>
+      </div>
+
+      <p class="st">今日任务</p>
+      <div class="g">
+        <div class="alert warning"><span class="alert-icon">⚠️</span><div class="alert-text"><strong>待处理：精密轴套批次 #B202</strong><br><span style="color:var(--ts);font-size:12px">等待尺寸检测</span></div></div>
+        <div class="alert success"><span class="alert-icon">✅</span><div class="alert-text"><strong>已完成：法兰盘批次 #A105</strong><br><span style="color:var(--ts);font-size:12px">合格 · 50件</span></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-quality-iqc" class="page">
+    <div class="header show back" onclick="showPage('quality-home')">
+      <h1>📥 来料检验 (IQC)</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <p class="st">待检验批次</p>
+      <div class="g">
+        <div class="wo-card" style="cursor:pointer" onclick="showIQCForm('MAT-001')">
+          <div class="wo-header">
+            <span class="wo-id">#B20230601</span>
+            <span class="badge bw">待检验</span>
+          </div>
+          <div class="wo-row"><span class="label">物料</span><span>45# 圆钢 Φ20mm</span></div>
+          <div class="wo-row"><span class="label">供应商</span><span>杭州钢铁集团</span></div>
+          <div class="wo-row"><span class="label">数量</span><span>200kg</span></div>
+          <div class="wo-row"><span class="label">到货日期</span><span>2026-06-03</span></div>
+        </div>
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">#B20230528</span>
+            <span class="badge bg">已合格</span>
+          </div>
+          <div class="wo-row"><span class="label">物料</span><span>不锈钢板 304</span></div>
+          <div class="wo-row"><span class="label">供应商</span><span>上海金属</span></div>
+          <div class="wo-row"><span class="label">数量</span><span>100张</span></div>
+          <div class="wo-row"><span class="label">检验日期</span><span>2026-05-28</span></div>
+        </div>
+      </div>
+
+      <div id="iqcForm" style="display:none">
+        <p class="st">检验表单</p>
+        <div class="g">
+          <div class="dc-row"><span class="label">批次号</span><span class="value mono" id="iqcBatch">#B20230601</span></div>
+          <div class="dc-row"><span class="label">物料</span><span class="value">45# 圆钢 Φ20mm</span></div>
+        </div>
+        <p class="st">检验项目</p>
+        <div class="g">
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--dbd)">
+            <span>外观检查</span>
+            <div style="display:flex;gap:8px">
+              <button class="nbtn-outline nbtn-sm" style="border-color:var(--sg);color:var(--sg)">合格</button>
+              <button class="nbtn-outline nbtn-sm">不合格</button>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--dbd)">
+            <span>尺寸测量</span>
+            <div style="display:flex;gap:8px">
+              <button class="nbtn-outline nbtn-sm" style="border-color:var(--sg);color:var(--sg)">合格</button>
+              <button class="nbtn-outline nbtn-sm">不合格</button>
+            </div>
+          </div>
+          <div style="display:flex;justify-content:space-between;padding:12px 0">
+            <span>材质证明</span>
+            <div style="display:flex;gap:8px">
+              <button class="nbtn-outline nbtn-sm" style="border-color:var(--sg);color:var(--sg)">合格</button>
+              <button class="nbtn-outline nbtn-sm">不合格</button>
+            </div>
+          </div>
+        </div>
+        <p class="st">检验结论</p>
+        <div class="g">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <button class="nbtn" style="flex:1;background:linear-gradient(135deg,var(--sg),var(--nb))" onclick="this.style.opacity='1'">✅ 合格</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="nbtn-outline" style="flex:1">⚠️ 让步接收</button>
+            <button class="nbtn-outline" style="flex:1;border-color:var(--er);color:var(--er)">❌ 不合格</button>
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+          <label style="display:block;font-size:12px;color:var(--ts);margin-bottom:6px">备注</label>
+          <input type="text" class="input" placeholder="选填">
+        </div>
+        <button class="nbtn" onclick="submitIQC()">提交检验结果</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-quality-fai" class="page">
+    <div class="header show back" onclick="showPage('quality-home')">
+      <h1>🎯 FA首件确认</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <p class="st">待检验工单</p>
+      <div class="g">
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">WO2024060301</span>
+            <span class="badge bw">待检验</span>
+          </div>
+          <div class="wo-row"><span class="label">产品</span><span>精密轴套 #A202</span></div>
+          <div class="wo-row"><span class="label">数量</span><span>100件</span></div>
+          <div class="wo-row"><span class="label">机台</span><span>CNC-01</span></div>
+          <div class="wo-row"><span class="label">要求</span><span>首件全尺寸检测</span></div>
+        </div>
+      </div>
+
+      <p class="st">检测项目</p>
+      <div class="g">
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--dbd)">
+          <span>外径 Φ20±0.02</span>
+          <input type="text" class="input" style="width:80px;text-align:center" placeholder="实测">
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--dbd)">
+          <span>内径 Φ12±0.02</span>
+          <input type="text" class="input" style="width:80px;text-align:center" placeholder="实测">
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--dbd)">
+          <span>长度 35±0.05</span>
+          <input type="text" class="input" style="width:80px;text-align:center" placeholder="实测">
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 0">
+          <span>形位公差</span>
+          <input type="text" class="input" style="width:80px;text-align:center" placeholder="实测">
+        </div>
+      </div>
+
+      <div style="display:flex;gap:8px;margin-top:16px">
+        <button class="nbtn" style="flex:1;background:linear-gradient(135deg,var(--sg),var(--nb))">✅ 合格</button>
+        <button class="nbtn-outline" style="flex:1;border-color:var(--wr);color:var(--wr)">⚠️ 返工</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-quality-cmm" class="page">
+    <div class="header show back" onclick="showPage('quality-home')">
+      <h1>📐 三次元检测 (CMM)</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
+      <p class="st">待检测工单</p>
+      <div class="g">
+        <div class="wo-card">
+          <div class="wo-header">
+            <span class="wo-id">WO2024060105</span>
+            <span class="badge bw">待检测</span>
+          </div>
+          <div class="wo-row"><span class="label">产品</span><span>连接器 #D401</span></div>
+          <div class="wo-row"><span class="label">检测类型</span><span>三维坐标测量</span></div>
+          <div class="wo-row"><span class="label">申请日期</span><span>2026-06-01</span></div>
+        </div>
+      </div>
+
+      <div class="alert" style="margin-top:16px">
+        <span class="alert-icon">ℹ️</span>
+        <div class="alert-text">
+          <strong>CMM数据导入</strong><br>
+          <span style="color:var(--ts);font-size:12px">支持CSV格式导入，测量后自动计算偏差值</span>
+        </div>
+      </div>
+
+      <button class="nbtn" style="margin-top:16px">📊 导入CMM数据</button>
+    </div>
+  </div>
+
+  <div id="page-quality-report" class="page">
+    <div class="header show">
+      <h1>📊 质检报告</h1>
+    </div>
+    <div class="main" style="margin-top:50px">
       <div class="stats">
         <div class="s g">
-          <span class="sv" style="font-size:20px;color:var(--nb)">¥256,800</span>
-          <span class="sc">应收账款</span>
+          <span class="sv" style="font-size:20px;color:var(--sg)">94.5%</span>
+          <span class="sc">合格率</span>
         </div>
         <div class="s g">
-          <span class="sv" style="font-size:20px;color:var(--wr)">¥89,500</span>
-          <span class="sc">应付账款</span>
+          <span class="sv" style="font-size:20px">28</span>
+          <span class="sc">本月检验</span>
         </div>
         <div class="s g">
-          <span class="sv" style="font-size:20px;color:var(--sg)">¥128,500</span>
-          <span class="sc">已收款</span>
+          <span class="sv" style="font-size:20px;color:var(--er)">2</span>
+          <span class="sc">不合格</span>
         </div>
         <div class="s g">
-          <span class="sv" style="font-size:20px;color:var(--np)">¥67,300</span>
-          <span class="sc">净利润</span>
+          <span class="sv" style="font-size:20px">0</span>
+          <span class="sc">退货</span>
         </div>
       </div>
-      <p class="st">应收管理</p>
+
+      <p class="st">检验记录</p>
       <div class="g">
-        <div class="list-item"><div class="icon" style="background:rgba(0,212,255,.2)">📥</div><div class="info"><div class="title">深圳市XX机械</div><div class="meta">SO2024060301 · ¥15,800</div></div><span class="badge bi">待收款</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">📥</div><div class="info"><div class="title">东莞市YY精密电子</div><div class="meta">SO2024060201 · ¥8,500</div></div><span class="badge bw">催款中</span></div>
-        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">佛山市ZZ金属制品</div><div class="meta">SO2024060101 · ¥12,300</div></div><span class="badge bg">已收款</span></div>
-      </div>
-      <p class="st">快捷操作</p>
-      <div class="quick-actions">
-        <div class="qa-item g"><div class="icon">💵</div><p>收款</p></div>
-        <div class="qa-item g"><div class="icon">💸</div><p>付款</p></div>
-        <div class="qa-item g"><div class="icon">📊</div><p>对账</p></div>
-        <div class="qa-item g"><div class="icon">📋</div><p>工资</p></div>
+        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">QC2024060301</div><div class="meta">精密轴套 · 2026-06-03</div></div><span class="badge bg">合格</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(245,158,11,.2)">⚠️</div><div class="info"><div class="title">QC2024060201</div><div class="meta">不锈钢板 · 2026-06-02</div></div><span class="badge bw">让步</span></div>
+        <div class="list-item"><div class="icon" style="background:rgba(16,185,129,.2)">✅</div><div class="info"><div class="title">QC2024060101</div><div class="meta">法兰盘 · 2026-06-01</div></div><span class="badge bg">合格</span></div>
       </div>
     </div>
   </div>
@@ -562,36 +758,25 @@ body{padding-bottom:70px}
 
 <script>
 var currentRole='';
-var currentPage='rolePage';
 
-var roleNames={admin:'管理员',manager:'生产主管',worker:'操作工',warehouse:'仓管员',finance:'财务'};
-var roleTags={admin:'bi',manager:'bw',worker:'bp',warehouse:'wr',finance:'bg'};
+var roleNames={worker:'车间操作工',warehouse:'仓管员',quality:'品检员'};
+var roleTags={worker:'bi',warehouse:'bw',quality:'bp'};
 
 var navConfig={
-  admin:[
-    {id:'admin-dashboard',icon:'⚙️',label:'首页'},
-    {id:'admin-user-list',icon:'👥',label:'用户'},
-    {id:'admin-role-list',icon:'🔐',label:'权限'}
-  ],
-  manager:[
-    {id:'manager-dashboard',icon:'📊',label:'看板'},
-    {id:'manager-orders',icon:'📋',label:'订单'},
-    {id:'manager-wo-detail',icon:'🔧',label:'工单'}
-  ],
   worker:[
-    {id:'worker-dashboard',icon:'🔧',label:'车间'},
+    {id:'worker-home',icon:'🏠',label:'首页'},
     {id:'worker-report',icon:'📝',label:'报工'},
     {id:'worker-history',icon:'📜',label:'记录'}
   ],
   warehouse:[
-    {id:'warehouse-dashboard',icon:'📦',label:'仓储'},
+    {id:'warehouse-home',icon:'🏠',label:'首页'},
     {id:'warehouse-stock-query',icon:'🔍',label:'查询'},
-    {id:'warehouse-stock-in',icon:'📥',label:'入库'}
+    {id:'warehouse-record',icon:'📋',label:'记录'}
   ],
-  finance:[
-    {id:'finance-dashboard',icon:'💰',label:'财务'},
-    {id:'finance-receivable',icon:'📥',label:'应收'},
-    {id:'finance-payable',icon:'📤',label:'应付'}
+  quality:[
+    {id:'quality-home',icon:'🏠',label:'首页'},
+    {id:'quality-iqc',icon:'📥',label:'IQC'},
+    {id:'quality-report',icon:'📊',label:'报告'}
   ]
 };
 
@@ -610,9 +795,9 @@ function handleLogin(e){
   if(!name)return;
   document.getElementById('login').classList.remove('show');
   document.getElementById('main').classList.add('show');
-  document.querySelector('.header.show')||document.getElementById('main').querySelector('.header')&&(document.getElementById('main').querySelector('.header').classList.add('show'));
+  document.getElementById('bottomNav').classList.add('show');
   buildBottomNav();
-  showPage(currentRole+'-dashboard');
+  showPage(currentRole+'-home');
 }
 
 function buildBottomNav(){
@@ -640,7 +825,8 @@ function showPage(pageId){
   var hasHeader=page&&page.querySelector('.header');
   document.querySelectorAll('.header.show').forEach(function(h){h.classList.remove('show')});
   if(hasHeader){
-    page.querySelector('.header').classList.add('show');
+    var hdr=page.querySelector('.header');
+    if(hdr)hdr.classList.add('show');
   }
 }
 
@@ -654,30 +840,85 @@ function showSubPage(pageId){
   }
 }
 
-function scan(type){
+function openScan(){
   var modal=document.getElementById('modal');
-  var icon=document.getElementById('mIcon');
-  var title=document.getElementById('mTitle');
-  var text=document.getElementById('mText');
+  document.getElementById('mIcon').textContent='📷';
+  document.getElementById('mIcon').className='modal-icon';
+  document.getElementById('mTitle').textContent='扫码功能';
+  document.getElementById('mTitle').className='';
+  document.getElementById('mText').textContent='请使用扫码枪或手机相机扫描条码\n\n演示模式：点击下方按钮模拟扫码';
+  modal.innerHTML='<div class="modal-content"><div class="modal-icon">📷</div><h2>扫码功能</h2><p style="color:var(--ts);margin-bottom:20px;font-size:13px">请使用扫码枪或手机相机扫描条码</p><button class="nbtn" style="margin-bottom:8px" onclick="simulateScan(\'start\')">📋 模拟扫描工单</button><button class="nbtn" style="margin-bottom:8px" onclick="simulateScan(\'in\')">📦 模拟扫描物料</button><button class="nbtn" onclick="closeModal()">取消</button></div>';
+  modal.classList.add('show');
+}
+
+function scanAction(type){
   if(type==='start'){
-    icon.textContent='📱';title.textContent='扫码开工成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='工单 WO2024060301 已开始\n机台：CNC-01\n时间：09:32:15';
-  }else if(type==='report'){
-    icon.textContent='📝';title.textContent='扫码报工成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='报工数量：50件\n合格：48件 | 报废：2件';
-  }else if(type==='transfer'){
-    icon.textContent='🔄';title.textContent='扫码过站成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='物料已流转至下工序\n接班机台：CNC-02';
-  }else if(type==='in'){
-    icon.textContent='📥';title.textContent='扫码入库成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='45# 圆钢 Φ20\n数量：100kg\n已入库到原料仓';
-  }else if(type==='out'){
-    icon.textContent='📤';title.textContent='扫码出库成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='精密轴套 #A202\n数量：50件\n已从成品仓出库';
-  }else if(type==='move'){
-    icon.textContent='🔄';title.textContent='库位调拨成功';title.className='success';icon.className='modal-icon success';
-    text.textContent='物料：精密轴套 #A202\n从：A区-01-01\n到：B区-02-03';
+    showPage('worker-home');
+    setTimeout(function(){
+      var modal=document.getElementById('modal');
+      modal.innerHTML='<div class="modal-content"><div class="modal-icon success">✅</div><h2 class="success">扫码开工成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">工单 WO2024060301 已开工<br>机台：CNC-01<br>时间：09:32:15</p><button class="nbtn" onclick="closeModal()">确定</button></div>';
+      modal.classList.add('show');
+    },100);
+  } else if(type==='report'){
+    showPage('worker-report');
+  } else if(type==='transfer'){
+    var modal=document.getElementById('modal');
+    modal.innerHTML='<div class="modal-content"><div class="modal-icon success">🔄</div><h2 class="success">扫码过站成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">工单 WO2024060301 精车工序已完成<br>已流转至下工序：检验<br>时间：16:45:30</p><button class="nbtn" onclick="closeModal()">确定</button></div>';
+    modal.classList.add('show');
+  } else if(type==='in'){
+    showPage('warehouse-stock-in');
+    setTimeout(function(){
+      document.getElementById('stockInForm').style.display='block';
+    },100);
+  } else if(type==='out'){
+    showPage('warehouse-stock-out');
+    setTimeout(function(){
+      document.getElementById('stockOutForm').style.display='block';
+    },100);
   }
+}
+
+function simulateScan(type){
+  closeModal();
+  if(currentRole==='worker'){
+    scanAction('start');
+  } else if(currentRole==='warehouse'){
+    if(type==='in'){
+      showPage('warehouse-stock-in');
+      setTimeout(function(){document.getElementById('stockInForm').style.display='block'},100);
+    } else if(type==='out'){
+      showPage('warehouse-stock-out');
+      setTimeout(function(){document.getElementById('stockOutForm').style.display='block'},100);
+    }
+  }
+}
+
+function submitReport(){
+  var modal=document.getElementById('modal');
+  modal.innerHTML='<div class="modal-content"><div class="modal-icon success">✅</div><h2 class="success">报工成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">报工数量：35件<br>合格：34件<br>报废：1件<br>时间：14:32:15</p><button class="nbtn" onclick="closeModal();showPage(\'worker-home\')">确定</button></div>';
+  modal.classList.add('show');
+}
+
+function confirmStockIn(){
+  var modal=document.getElementById('modal');
+  modal.innerHTML='<div class="modal-content"><div class="modal-icon success">✅</div><h2 class="success">入库成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">物料：45# 圆钢 Φ20mm<br>数量：200kg<br>库位：A-01-03<br>入库单号：IN2024060301</p><button class="nbtn" onclick="closeModal();showPage(\'warehouse-home\')">确定</button></div>';
+  modal.classList.add('show');
+}
+
+function confirmStockOut(){
+  var modal=document.getElementById('modal');
+  modal.innerHTML='<div class="modal-content"><div class="modal-icon success">✅</div><h2 class="success">出库成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">物料：精密轴套 #A202<br>数量：50件<br>领用人：张三<br>出库单号：OUT2024060301</p><button class="nbtn" onclick="closeModal();showPage(\'warehouse-home\')">确定</button></div>';
+  modal.classList.add('show');
+}
+
+function showIQCForm(batch){
+  document.getElementById('iqcBatch').textContent=batch;
+  document.getElementById('iqcForm').style.display='block';
+}
+
+function submitIQC(){
+  var modal=document.getElementById('modal');
+  modal.innerHTML='<div class="modal-content"><div class="modal-icon success">✅</div><h2 class="success">检验提交成功</h2><p style="color:var(--ts);margin-bottom:16px;font-size:13px">批次：#B20230601<br>结论：合格<br>检验员：李工<br>时间：2026-06-03 10:15:32</p><button class="nbtn" onclick="closeModal();showPage(\'quality-home\')">确定</button></div>';
   modal.classList.add('show');
 }
 
