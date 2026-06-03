@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="neon_blue">#00D4FF</color>
+    <color name="neon_purple">#A855F7</color>
+    <color name="neon_pink">#EC4899</color>
+    <color name="dark_bg">#0A0A0F</color>
+    <color name="dark_card">#13131A</color>
+    <color name="dark_border">#1E1E2E</color>
+    <color name="text_primary">#E2E8F0</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#EF4444</color>
+</resources>
